@@ -2,9 +2,26 @@
 	"info": {
 		"_postman_id": "nutrition-stack-api",
 		"name": "Nutrition Stack API",
-		"description": "API collection for the Nutrition Stack Web API - User Authentication",
+		"description": "API collection for the Nutrition Stack Web API - User Authentication\n\n🔐 **Token Management**:\n- Run 'Register User' or 'Login User' first to get a JWT token\n- The token is automatically saved and used by all other requests\n- If you get 401/403 errors, the token is automatically cleared - just login again\n- No need to manually copy-paste tokens!",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
+	"event": [
+		{
+			"listen": "test",
+			"script": {
+				"exec": [
+					"// Collection-level script to handle authentication errors",
+					"if (pm.response.code === 401 || pm.response.code === 403) {",
+					"    // Clear token if authentication fails",
+					"    pm.collectionVariables.unset('authToken');",
+					"    console.log('Authentication failed - token cleared');",
+					"    console.log('Please login again to get a new token');",
+					"}"
+				],
+				"type": "text/javascript"
+			}
+		}
+	],
 	"item": [
 		{
 			"name": "Authentication",
@@ -36,6 +53,25 @@
 						},
 						"description": "Register a new user account"
 					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Extract token from response and set as collection variable",
+									"if (pm.response.code === 200) {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.token) {",
+									"        pm.collectionVariables.set('authToken', responseJson.token);",
+									"        console.log('Token saved:', responseJson.token);",
+									"        console.log('User registered and logged in automatically');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"response": []
 				},
 				{
@@ -65,10 +101,183 @@
 						},
 						"description": "Login with existing user credentials"
 					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Extract token from response and set as collection variable",
+									"if (pm.response.code === 200) {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.token) {",
+									"        pm.collectionVariables.set('authToken', responseJson.token);",
+									"        console.log('Token saved:', responseJson.token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"response": []
 				}
 			],
 			"description": "User authentication endpoints"
+		},
+		{
+			"name": "User Profile",
+			"item": [
+				{
+					"name": "Get User Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/user/profile",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"profile"
+							]
+						},
+						"description": "Get current user's profile information"
+					},
+					"response": []
+				},
+				{
+					"name": "Update User Profile (Both)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"newusername\",\n    \"password\": \"newpassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/user/profile",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"profile"
+							]
+						},
+						"description": "Update both username and password"
+					},
+					"response": []
+				},
+				{
+					"name": "Update User Profile (Username Only)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"newusername\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/user/profile",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"profile"
+							]
+						},
+						"description": "Update only username (password remains unchanged)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update User Profile (Password Only)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"password\": \"newpassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/user/profile",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"profile"
+							]
+						},
+						"description": "Update only password (username remains unchanged)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User Account",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/user/profile",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"profile"
+							]
+						},
+						"description": "Delete current user's account permanently"
+					},
+					"response": []
+				}
+			],
+			"description": "User profile management endpoints"
 		}
 	],
 	"event": [
