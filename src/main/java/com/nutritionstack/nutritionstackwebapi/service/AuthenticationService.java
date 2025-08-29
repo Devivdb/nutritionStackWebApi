@@ -10,26 +10,17 @@ import com.nutritionstack.nutritionstackwebapi.model.User;
 import com.nutritionstack.nutritionstackwebapi.model.UserRole;
 import com.nutritionstack.nutritionstackwebapi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
-public class UserService implements UserDetailsService {
+@RequiredArgsConstructor
+public class AuthenticationService {
     
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, 
-                      JwtService jwtService) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtService = jwtService;
-    }
     
     public AuthResponseDTO registerUser(UserRegistrationRequestDTO request) {
         if (userRepository.existsByUsername(request.getUsername())) {
@@ -70,12 +61,5 @@ public class UserService implements UserDetailsService {
                 user.getRole(),
                 ErrorMessages.LOGIN_SUCCESSFUL
         );
-    }
-    
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException(
-                        String.format(ErrorMessages.USER_NOT_FOUND, username)));
     }
 }

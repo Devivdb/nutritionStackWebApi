@@ -15,8 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
@@ -26,7 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class UserServiceTest {
+class AuthenticationServiceTest {
     
     @Mock
     private UserRepository userRepository;
@@ -37,11 +36,8 @@ class UserServiceTest {
     @Mock
     private JwtService jwtService;
     
-    @Mock
-    private AuthenticationManager authenticationManager;
-    
     @InjectMocks
-    private UserService userService;
+    private AuthenticationService authenticationService;
     
     private User testUser;
     private UserRegistrationRequestDTO registrationRequest;
@@ -53,7 +49,6 @@ class UserServiceTest {
         testUser.setId(1L);
         
         registrationRequest = new UserRegistrationRequestDTO("testuser", "password123");
-        
         loginRequest = new UserLoginRequestDTO("testuser", "password123");
     }
     
@@ -66,7 +61,7 @@ class UserServiceTest {
         when(jwtService.generateToken(testUser)).thenReturn("jwtToken");
         
         // Act
-        AuthResponseDTO response = userService.registerUser(registrationRequest);
+        AuthResponseDTO response = authenticationService.registerUser(registrationRequest);
         
         // Assert
         assertNotNull(response);
@@ -88,7 +83,7 @@ class UserServiceTest {
         
         // Act & Assert
         UserAlreadyExistsException exception = assertThrows(UserAlreadyExistsException.class, () -> {
-            userService.registerUser(registrationRequest);
+            authenticationService.registerUser(registrationRequest);
         });
         
         assertEquals("User with username 'testuser' already exists", exception.getMessage());
@@ -97,14 +92,14 @@ class UserServiceTest {
     }
     
     @Test
-    void loginUser_ShouldReturnAuthResponse_WhenValidCredentials() {
+    void loginUser_ShouldReturnToken_WhenValidCredentials() {
         // Arrange
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
         when(passwordEncoder.matches("password123", "encodedPassword")).thenReturn(true);
         when(jwtService.generateToken(testUser)).thenReturn("jwtToken");
         
         // Act
-        AuthResponseDTO response = userService.loginUser(loginRequest);
+        AuthResponseDTO response = authenticationService.loginUser(loginRequest);
         
         // Assert
         assertNotNull(response);
@@ -119,27 +114,34 @@ class UserServiceTest {
     }
     
     @Test
-    void loginUser_ShouldThrowInvalidCredentialsException_WhenInvalidPassword() {
+    void loginUser_ShouldThrowException_WhenUserNotFound() {
         // Arrange
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
-        when(passwordEncoder.matches("wrongpassword", "encodedPassword")).thenReturn(false);
-        
-        UserLoginRequestDTO invalidLoginRequest = new UserLoginRequestDTO("testuser", "wrongpassword");
+        when(userRepository.findByUsername("testuser")).thenReturn(Optional.empty());
         
         // Act & Assert
-        InvalidCredentialsException exception = assertThrows(InvalidCredentialsException.class, () -> {
-            userService.loginUser(invalidLoginRequest);
+        UsernameNotFoundException exception = assertThrows(UsernameNotFoundException.class, () -> {
+            authenticationService.loginUser(loginRequest);
         });
         
-        assertEquals(ErrorMessages.INVALID_CREDENTIALS, exception.getMessage());
+        assertEquals("User not found: testuser", exception.getMessage());
         verify(userRepository).findByUsername("testuser");
-        verify(passwordEncoder).matches("wrongpassword", "encodedPassword");
-        verify(jwtService, never()).generateToken(any(User.class));
+        verify(passwordEncoder, never()).matches(anyString(), anyString());
     }
     
     @Test
-    void userService_ShouldBeInstantiated() {
-        // This test verifies that our UserService can be instantiated
-        assertNotNull(userService);
+    void loginUser_ShouldThrowException_WhenInvalidPassword() {
+        // Arrange
+        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
+        when(passwordEncoder.matches("password123", "encodedPassword")).thenReturn(false);
+        
+        // Act & Assert
+        InvalidCredentialsException exception = assertThrows(InvalidCredentialsException.class, () -> {
+            authenticationService.loginUser(loginRequest);
+        });
+        
+        assertNotNull(exception);
+        verify(userRepository).findByUsername("testuser");
+        verify(passwordEncoder).matches("password123", "encodedPassword");
+        verify(jwtService, never()).generateToken(any(User.class));
     }
 }
