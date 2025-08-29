@@ -1,0 +1,248 @@
+package com.nutritionstack.nutritionstackwebapi.service;
+
+import com.nutritionstack.nutritionstackwebapi.dto.ProductCreateRequestDTO;
+import com.nutritionstack.nutritionstackwebapi.dto.ProductResponseDTO;
+import com.nutritionstack.nutritionstackwebapi.dto.ProductUpdateRequestDTO;
+import com.nutritionstack.nutritionstackwebapi.exception.ProductAlreadyExistsException;
+import com.nutritionstack.nutritionstackwebapi.exception.ProductNotFoundException;
+import com.nutritionstack.nutritionstackwebapi.model.NutritionInfo;
+import com.nutritionstack.nutritionstackwebapi.model.Product;
+import com.nutritionstack.nutritionstackwebapi.model.User;
+import com.nutritionstack.nutritionstackwebapi.repository.ProductRepository;
+import com.nutritionstack.nutritionstackwebapi.repository.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class ProductServiceTest {
+    
+    @Mock
+    private ProductRepository productRepository;
+    
+    @Mock
+    private UserRepository userRepository;
+    
+    @InjectMocks
+    private ProductService productService;
+    
+    private User testUser;
+    private Product testProduct;
+    private ProductCreateRequestDTO createRequest;
+    private ProductUpdateRequestDTO updateRequest;
+    
+    @BeforeEach
+    void setUp() {
+        testUser = new User("testuser", "password", com.nutritionstack.nutritionstackwebapi.model.UserRole.USER);
+        testUser.setId(1L);
+        
+        NutritionInfo nutritionInfo = new NutritionInfo();
+        nutritionInfo.setCalories(100.0);
+        nutritionInfo.setProtein(5.0);
+        nutritionInfo.setCarbs(20.0);
+        nutritionInfo.setFat(2.0);
+        nutritionInfo.setFiber(3.0);
+        nutritionInfo.setSugar(10.0);
+        nutritionInfo.setSalt(0.5);
+        
+        testProduct = new Product();
+        testProduct.setEan13Code("1234567890123");
+        testProduct.setProductName("Test Product");
+        testProduct.setNutritionInfo(nutritionInfo);
+        testProduct.setAmount(100.0);
+        testProduct.setUnit("g");
+        testProduct.setCreatedBy(1L);
+        testProduct.setCreatedAt(LocalDateTime.now());
+        
+        createRequest = new ProductCreateRequestDTO();
+        createRequest.setEan13Code("1234567890123");
+        createRequest.setProductName("Test Product");
+        createRequest.setAmount(100.0);
+        createRequest.setUnit("g");
+        createRequest.setCalories(100.0);
+        createRequest.setProtein(5.0);
+        createRequest.setCarbs(20.0);
+        createRequest.setFat(2.0);
+        createRequest.setFiber(3.0);
+        createRequest.setSugar(10.0);
+        createRequest.setSalt(0.5);
+        
+        updateRequest = new ProductUpdateRequestDTO();
+        updateRequest.setProductName("Updated Product");
+        updateRequest.setAmount(150.0);
+        updateRequest.setUnit("ml");
+        updateRequest.setCalories(150.0);
+    }
+    
+    @Test
+    void createProduct_ShouldCreateProductSuccessfully() {
+        // Arrange
+        when(productRepository.existsByEan13Code("1234567890123")).thenReturn(false);
+        when(productRepository.save(any(Product.class))).thenReturn(testProduct);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        
+        // Act
+        ProductResponseDTO result = productService.createProduct(createRequest, 1L);
+        
+        // Assert
+        assertNotNull(result);
+        assertEquals("1234567890123", result.getEan13Code());
+        assertEquals("Test Product", result.getProductName());
+        assertEquals(100.0, result.getAmount());
+        assertEquals("g", result.getUnit());
+        assertEquals("testuser", result.getCreatedByUsername());
+        
+        verify(productRepository).existsByEan13Code("1234567890123");
+        verify(productRepository).save(any(Product.class));
+    }
+    
+    @Test
+    void createProduct_ShouldThrowException_WhenProductAlreadyExists() {
+        // Arrange
+        when(productRepository.existsByEan13Code("1234567890123")).thenReturn(true);
+        
+        // Act & Assert
+        assertThrows(ProductAlreadyExistsException.class, () -> {
+            productService.createProduct(createRequest, 1L);
+        });
+        
+        verify(productRepository).existsByEan13Code("1234567890123");
+        verify(productRepository, never()).save(any(Product.class));
+    }
+    
+    @Test
+    void getProductByEan13Code_ShouldReturnProduct_WhenProductExists() {
+        // Arrange
+        when(productRepository.findByEan13Code("1234567890123")).thenReturn(Optional.of(testProduct));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        
+        // Act
+        ProductResponseDTO result = productService.getProductByEan13Code("1234567890123");
+        
+        // Assert
+        assertNotNull(result);
+        assertEquals("1234567890123", result.getEan13Code());
+        assertEquals("Test Product", result.getProductName());
+        assertEquals(100.0, result.getAmount());
+        assertEquals("g", result.getUnit());
+        assertEquals("testuser", result.getCreatedByUsername());
+        
+        verify(productRepository).findByEan13Code("1234567890123");
+    }
+    
+    @Test
+    void getProductByEan13Code_ShouldThrowException_WhenProductNotFound() {
+        // Arrange
+        when(productRepository.findByEan13Code("1234567890123")).thenReturn(Optional.empty());
+        
+        // Act & Assert
+        assertThrows(ProductNotFoundException.class, () -> {
+            productService.getProductByEan13Code("1234567890123");
+        });
+        
+        verify(productRepository).findByEan13Code("1234567890123");
+    }
+    
+    @Test
+    void updateProduct_ShouldUpdateProductSuccessfully() {
+        // Arrange
+        when(productRepository.findByEan13Code("1234567890123")).thenReturn(Optional.of(testProduct));
+        when(productRepository.save(any(Product.class))).thenReturn(testProduct);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        
+        // Act
+        ProductResponseDTO result = productService.updateProduct("1234567890123", updateRequest);
+        
+        // Assert
+        assertNotNull(result);
+        assertEquals("Updated Product", result.getProductName());
+        assertEquals(150.0, result.getAmount());
+        assertEquals("ml", result.getUnit());
+        
+        verify(productRepository).findByEan13Code("1234567890123");
+        verify(productRepository).save(any(Product.class));
+    }
+    
+    @Test
+    void updateProduct_ShouldThrowException_WhenProductNotFound() {
+        // Arrange
+        when(productRepository.findByEan13Code("1234567890123")).thenReturn(Optional.empty());
+        
+        // Act & Assert
+        assertThrows(ProductNotFoundException.class, () -> {
+            productService.updateProduct("1234567890123", updateRequest);
+        });
+        
+        verify(productRepository).findByEan13Code("1234567890123");
+        verify(productRepository, never()).save(any(Product.class));
+    }
+    
+    @Test
+    void deleteProduct_ShouldDeleteProductSuccessfully() {
+        // Arrange
+        when(productRepository.findByEan13Code("1234567890123")).thenReturn(Optional.of(testProduct));
+        
+        // Act
+        productService.deleteProduct("1234567890123");
+        
+        // Assert
+        verify(productRepository).findByEan13Code("1234567890123");
+        verify(productRepository).delete(testProduct);
+    }
+    
+    @Test
+    void deleteProduct_ShouldThrowException_WhenProductNotFound() {
+        // Arrange
+        when(productRepository.findByEan13Code("1234567890123")).thenReturn(Optional.empty());
+        
+        // Act & Assert
+        assertThrows(ProductNotFoundException.class, () -> {
+            productService.deleteProduct("1234567890123");
+        });
+        
+        verify(productRepository).findByEan13Code("1234567890123");
+        verify(productRepository, never()).delete(any(Product.class));
+    }
+    
+    @Test
+    void getAllProducts_ShouldReturnAllProducts() {
+        // Arrange
+        List<Product> products = List.of(testProduct);
+        when(productRepository.findAll()).thenReturn(products);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        
+        // Act
+        List<ProductResponseDTO> result = productService.getAllProducts();
+        
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("1234567890123", result.get(0).getEan13Code());
+        
+        verify(productRepository).findAll();
+    }
+    
+    @Test
+    void convertToResponseDTO_ShouldReturnUnknownUser_WhenUserNotFound() {
+        // Arrange
+        when(productRepository.findByEan13Code("1234567890123")).thenReturn(Optional.of(testProduct));
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        
+        // Act
+        ProductResponseDTO result = productService.getProductByEan13Code("1234567890123");
+        
+        // Assert
+        assertEquals("Unknown User", result.getCreatedByUsername());
+    }
+}
