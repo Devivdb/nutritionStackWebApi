@@ -280,6 +280,151 @@
 			"description": "User profile management endpoints"
 		},
 		{
+			"name": "Products",
+			"item": [
+				{
+					"name": "Create Product",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"ean13Code\": \"1234567890123\",\n    \"productName\": \"Sample Product\",\n    \"amount\": 100.0,\n    \"unit\": \"g\",\n    \"calories\": 150.0,\n    \"protein\": 10.0,\n    \"carbs\": 20.0,\n    \"fat\": 5.0,\n    \"fiber\": 3.0,\n    \"sugar\": 8.0,\n    \"salt\": 0.5\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/products",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"products"
+							]
+						},
+						"description": "Create a new product\n\nBody:\n- ean13Code: 13-digit EAN13 code (required)\n- productName: Product name (required)\n- amount: Serving amount (required, must be > 0)\n- unit: Unit of measurement (required, max 50 chars)\n- calories: Calories per unit (optional, non-negative)\n- protein: Protein in grams (optional, non-negative)\n- carbs: Carbohydrates in grams (optional, non-negative)\n- fat: Fat in grams (optional, non-negative)\n- fiber: Fiber in grams (optional, non-negative)\n- sugar: Sugar in grams (optional, non-negative)\n- salt: Salt in grams (optional, non-negative)\n\nBusiness Rules:\n- Authenticated users can create products\n- EAN13 code must be unique\n- Amount must be greater than 0\n- All nutrition values must be non-negative"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product by EAN13",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/products/{{ean13Code}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"products",
+								"{{ean13Code}}"
+							]
+						},
+						"description": "Get product information by EAN13 code\n\nPath Variables:\n- ean13Code: 13-digit EAN13 code\n\nBusiness Rules:\n- Authenticated users can look up products\n- Returns 404 if product not found"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Product",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"productName\": \"Updated Product Name\",\n    \"amount\": 150.0,\n    \"unit\": \"ml\",\n    \"calories\": 160.0,\n    \"protein\": 12.0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/products/{{ean13Code}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"products",
+								"{{ean13Code}}"
+							]
+						},
+						"description": "Update product information\n\nPath Variables:\n- ean13Code: 13-digit EAN13 code\n\nBody:\n- All fields are optional - only provided fields will be updated\n- productName: Product name (max 255 chars)\n- amount: Serving amount (must be > 0)\n- unit: Unit of measurement (max 50 chars)\n- calories: Calories per unit (non-negative)\n- protein: Protein in grams (non-negative)\n- carbs: Carbohydrates in grams (non-negative)\n- fat: Fat in grams (non-negative)\n- fiber: Fiber in grams (non-negative)\n- sugar: Sugar in grams (non-negative)\n- salt: Salt in grams (non-negative)\n\nBusiness Rules:\n- Authenticated users can update products\n- Partial updates supported - only provided fields are updated\n- Amount must be greater than 0\n- All nutrition values must be non-negative"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Product",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/products/{{ean13Code}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"products",
+								"{{ean13Code}}"
+							]
+						},
+						"description": "Delete a product (Admin only)\n\nPath Variables:\n- ean13Code: 13-digit EAN13 code\n\nBusiness Rules:\n- Only admins can delete products\n- Deletion is permanent and cannot be undone"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Products",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/products",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"products"
+							]
+						},
+						"description": "Get all products in the system\n\nBusiness Rules:\n- Authenticated users can view all products\n- Returns list of all products with nutrition information"
+					},
+					"response": []
+				}
+			],
+			"description": "Product management endpoints"
+		},
+		{
 			"name": "Admin Management",
 			"item": [
 				{
@@ -432,6 +577,11 @@
 		{
 			"key": "userId",
 			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "ean13Code",
+			"value": "1234567890123",
 			"type": "string"
 		}
 	]
