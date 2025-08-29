@@ -13,8 +13,10 @@ import org.springframework.stereotype.Service;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class JwtService {
     
@@ -26,6 +28,10 @@ public class JwtService {
     
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
+    }
+    
+    public Long extractUserId(String token) {
+        return extractClaim(token, claims -> claims.get("userId", Long.class));
     }
     
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
@@ -42,9 +48,23 @@ public class JwtService {
     }
     
     private String buildToken(Map<String, Object> extraClaims, UserDetails userDetails, long expiration) {
+        Map<String, Object> claims = new HashMap<>(extraClaims);
+        
+        // Add user ID if it's our custom User entity
+        if (userDetails instanceof com.nutritionstack.nutritionstackwebapi.model.User) {
+            com.nutritionstack.nutritionstackwebapi.model.User user = (com.nutritionstack.nutritionstackwebapi.model.User) userDetails;
+            claims.put("userId", user.getId());
+        }
+        
+        // Add user authorities/roles
+        List<String> authorities = userDetails.getAuthorities().stream()
+                .map(authority -> authority.getAuthority())
+                .collect(Collectors.toList());
+        claims.put("authorities", authorities);
+        
         return Jwts
                 .builder()
-                .setClaims(extraClaims)
+                .setClaims(claims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
