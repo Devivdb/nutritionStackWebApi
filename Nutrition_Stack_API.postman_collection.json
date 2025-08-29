@@ -278,6 +278,124 @@
 				}
 			],
 			"description": "User profile management endpoints"
+		},
+		{
+			"name": "Admin Management",
+			"item": [
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"users"
+							]
+						},
+						"description": "Get list of all users (Admin only)\n\nReturns:\n- User ID\n- Username\n- Role (USER/ADMIN)\n- Creation date"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/users/{{userId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"{{userId}}"
+							]
+						},
+						"description": "Get specific user information by ID (Admin only)\n\nPath Variables:\n- userId: The ID of the user to retrieve\n\nReturns:\n- User ID\n- Username\n- Role (USER/ADMIN)\n- Creation date"
+					},
+					"response": []
+				},
+				{
+					"name": "Update User Role",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"role\": \"ADMIN\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/users/{{userId}}/role",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"{{userId}}",
+								"role"
+							]
+						},
+						"description": "Update user role (Admin only)\n\nPath Variables:\n- userId: The ID of the user to update\n\nBody:\n- role: \"USER\" or \"ADMIN\"\n\nBusiness Rules:\n- Only admins can update roles\n- Cannot update your own role through this endpoint"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/users/{{userId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"{{userId}}"
+							]
+						},
+						"description": "Delete a user account (Admin only)\n\nPath Variables:\n- userId: The ID of the user to delete\n\nBusiness Rules:\n- Only admins can delete users\n- Admins cannot delete themselves\n- Cannot delete the last admin user\n- Deletion is permanent and cannot be undone"
+					},
+					"response": []
+				}
+			],
+			"description": "Admin user management endpoints (Admin role required)"
 		}
 	],
 	"event": [
@@ -309,6 +427,11 @@
 		{
 			"key": "authToken",
 			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": "1",
 			"type": "string"
 		}
 	]
