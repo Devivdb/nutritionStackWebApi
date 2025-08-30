@@ -12,6 +12,9 @@ import com.nutritionstack.nutritionstackwebapi.security.CustomAuthenticationToke
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.nutritionstack.nutritionstackwebapi.exception.ProductValidationException;
+import com.nutritionstack.nutritionstackwebapi.service.UserProfileService;
 
 import java.util.List;
 
@@ -20,16 +23,33 @@ import java.util.List;
 public class ProductController {
     
     private final ProductService productService;
+    private final UserProfileService userProfileService;
     
-    public ProductController(ProductService productService) {
+    public ProductController(ProductService productService, UserProfileService userProfileService) {
         this.productService = productService;
+        this.userProfileService = userProfileService;
     }
     
+    private Long getUserIdFromAuthentication(Authentication authentication) {
+        String username = authentication.getName();
+        return userProfileService.getUserIdByUsername(username);
+    }
+
     @PostMapping
-    public ResponseEntity<ProductResponseDTO> createProduct(@Valid @RequestBody ProductCreateRequestDTO request) {
-        Long userId = getCurrentUserId();
-        ProductResponseDTO response = productService.createProduct(request, userId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<ProductResponseDTO> createProduct(
+            @Valid @RequestBody ProductCreateRequestDTO request,
+            Authentication authentication) {
+        
+        try {
+            Long userId = getUserIdFromAuthentication(authentication);
+            ProductResponseDTO response = productService.createProduct(request, userId);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (ProductValidationException e) {
+            // This will be handled by the global exception handler
+            throw e;
+        } catch (Exception e) {
+            throw new ProductValidationException("Failed to create product: " + e.getMessage());
+        }
     }
     
     @GetMapping("/{ean13Code}")
@@ -41,9 +61,19 @@ public class ProductController {
     @PutMapping("/{ean13Code}")
     public ResponseEntity<ProductResponseDTO> updateProduct(
             @PathVariable String ean13Code,
-            @Valid @RequestBody ProductUpdateRequestDTO request) {
-        ProductResponseDTO response = productService.updateProduct(ean13Code, request);
-        return ResponseEntity.ok(response);
+            @Valid @RequestBody ProductUpdateRequestDTO request,
+            Authentication authentication) {
+        
+        try {
+            Long userId = getUserIdFromAuthentication(authentication);
+            ProductResponseDTO response = productService.updateProduct(ean13Code, request, userId);
+            return ResponseEntity.ok(response);
+        } catch (ProductValidationException e) {
+            // This will be handled by the global exception handler
+            throw e;
+        } catch (Exception e) {
+            throw new ProductValidationException("Failed to update product: " + e.getMessage());
+        }
     }
     
     @DeleteMapping("/{ean13Code}")

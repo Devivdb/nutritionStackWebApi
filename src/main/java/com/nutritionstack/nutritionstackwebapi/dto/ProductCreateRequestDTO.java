@@ -1,11 +1,12 @@
 package com.nutritionstack.nutritionstackwebapi.dto;
 
 import jakarta.validation.constraints.*;
+import com.nutritionstack.nutritionstackwebapi.model.Unit;
 
 public class ProductCreateRequestDTO extends BaseNutritionDTO {
     
     @NotBlank(message = "EAN13 code is required")
-    @Pattern(regexp = "^\\d{13}$", message = "EAN13 code must be exactly 13 digits")
+    @Pattern(regexp = "^\\d{13}$", message = "EAN13 code must contain exactly 13 digits (0-9) only")
     private String ean13Code;
     
     @NotBlank(message = "Product name is required")
@@ -16,13 +17,12 @@ public class ProductCreateRequestDTO extends BaseNutritionDTO {
     @DecimalMin(value = "0.1", message = "Amount must be greater than 0")
     private Double amount;
     
-    @NotBlank(message = "Unit is required")
-    @Size(max = 50, message = "Unit must not exceed 50 characters")
-    private String unit;
+    @NotNull(message = "Unit is required")
+    private Unit unit;
     
     public ProductCreateRequestDTO() {}
     
-    public ProductCreateRequestDTO(String ean13Code, String productName, Double amount, String unit,
+    public ProductCreateRequestDTO(String ean13Code, String productName, Double amount, Unit unit,
                                    Double calories, Double protein, Double carbs, Double fat, 
                                    Double fiber, Double sugar, Double salt) {
         super(calories, protein, carbs, fat, fiber, sugar, salt);
@@ -56,11 +56,11 @@ public class ProductCreateRequestDTO extends BaseNutritionDTO {
         this.amount = amount;
     }
     
-    public String getUnit() {
+    public Unit getUnit() {
         return unit;
     }
     
-    public void setUnit(String unit) {
+    public void setUnit(Unit unit) {
         this.unit = unit;
     }
 }

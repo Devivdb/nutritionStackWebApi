@@ -1,10 +1,12 @@
 package com.nutritionstack.nutritionstackwebapi.dto;
 
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
 
 public abstract class BaseNutritionDTO {
     
-    @DecimalMin(value = "0.0", message = "Calories must be non-negative")
+    @NotNull(message = "Calories is required")
+    @DecimalMin(value = "0.1", message = "Calories must be greater than 0")
     private Double calories;
     
     @DecimalMin(value = "0.0", message = "Protein must be non-negative")
@@ -30,12 +32,12 @@ public abstract class BaseNutritionDTO {
     public BaseNutritionDTO(Double calories, Double protein, Double carbs, Double fat, 
                            Double fiber, Double sugar, Double salt) {
         this.calories = calories;
-        this.protein = protein;
-        this.carbs = carbs;
-        this.fat = fat;
-        this.fiber = fiber;
-        this.sugar = sugar;
-        this.salt = salt;
+        this.protein = protein != null ? protein : 0.0;
+        this.carbs = carbs != null ? carbs : 0.0;
+        this.fat = fat != null ? fat : 0.0;
+        this.fiber = fiber != null ? fiber : 0.0;
+        this.sugar = sugar != null ? sugar : 0.0;
+        this.salt = salt != null ? salt : 0.0;
     }
     
     // Getters and Setters

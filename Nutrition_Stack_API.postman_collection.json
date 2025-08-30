@@ -541,6 +541,152 @@
 				}
 			],
 			"description": "Admin user management endpoints (Admin role required)"
+		},
+		{
+			"name": "Bulk Upload Management",
+			"item": [
+				{
+					"name": "Create Bulk Upload",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": [],
+									"description": "JSON file containing product data"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/bulk-upload",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"bulk-upload"
+							]
+						},
+						"description": "Upload a JSON file containing multiple products in bulk (Admin only)\n\nForm Data:\n- file: JSON file with product data (max 10MB)\n\nFile Requirements:\n- Must be a valid JSON file\n- Must have .json extension\n- Maximum file size: 10MB\n- Maximum 1000 products per file\n\nFile Format:\n{\n  \"products\": [\n    {\n      \"ean13Code\": \"1234567890123\",\n      \"productName\": \"Product Name\",\n      \"amount\": 100.0,\n      \"unit\": \"g\",\n      \"calories\": 150.0,\n      \"protein\": 10.0,\n      \"carbs\": 20.0,\n      \"fat\": 5.0,\n      \"fiber\": 3.0,\n      \"sugar\": 2.0,\n      \"salt\": 0.5\n    }\n  ]\n}\n\nEnhanced Validation Features:\n- EAN13 codes are automatically cleaned (removes spaces, hyphens, dots, commas)\n- Smart unit parsing (accepts 'gram', 'tablespoon', 'teaspoon', etc.)\n- Calories is mandatory and must be > 0\n- Optional nutrition fields default to 0.0 if not provided\n- Detailed validation error messages with field-specific feedback\n- Partial success: existing products are filtered out, new ones are added\n\nBusiness Rules:\n- Only admins can create bulk uploads\n- All products must have unique EAN13 codes\n- If ALL products already exist, returns 409 Conflict\n- If SOME products exist, they're filtered out and new ones are added\n- Enhanced error handling with appropriate HTTP status codes\n- Transaction ensures data consistency"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Bulk Uploads",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/bulk-uploads",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"bulk-uploads"
+							]
+						},
+						"description": "Get list of all bulk uploads (Admin only)\n\nReturns:\n- Bulk upload ID\n- File name\n- Product count\n- Uploaded by username\n- Upload date/time\n- Status (PROCESSING/COMPLETED/FAILED)\n- Error message (if failed)\n\nBusiness Rules:\n- Only admins can view all bulk uploads\n- Results ordered by upload date (newest first)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Bulk Uploads",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/bulk-uploads/my",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"bulk-uploads",
+								"my"
+							]
+						},
+						"description": "Get list of bulk uploads created by the current admin user\n\nReturns:\n- Same fields as 'Get All Bulk Uploads' but filtered to current user\n\nBusiness Rules:\n- Only admins can view their own bulk uploads\n- Results ordered by upload date (newest first)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Bulk Upload by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/bulk-uploads/{{bulkUploadId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"bulk-uploads",
+								"{{bulkUploadId}}"
+							]
+						},
+						"description": "Get specific bulk upload information by ID (Admin only)\n\nPath Variables:\n- bulkUploadId: The ID of the bulk upload to retrieve\n\nReturns:\n- Same fields as 'Get All Bulk Uploads' for the specific upload"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Products by Bulk Upload ID",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/bulk-uploads/{{bulkUploadId}}/products",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"bulk-uploads",
+								"{{bulkUploadId}}",
+								"products"
+							]
+						},
+						"description": "Delete all products associated with a specific bulk upload (Admin only)\n\nPath Variables:\n- bulkUploadId: The ID of the bulk upload whose products should be deleted\n\nBusiness Rules:\n- Only admins can delete products by bulk upload ID\n- Deletion is permanent and cannot be undone\n- All products with the specified bulk upload ID are removed"
+					},
+					"response": []
+				}
+			],
+			"description": "Bulk upload management endpoints for admins to upload and manage multiple products at once"
 		}
 	],
 	"event": [

@@ -78,8 +78,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (Exception e) {
             log.error("Error processing JWT token: {}", e.getMessage(), e);
-            // Don't throw exception here, just continue with the filter chain
-            // The request will be processed without authentication
         }
         
         filterChain.doFilter(request, response);

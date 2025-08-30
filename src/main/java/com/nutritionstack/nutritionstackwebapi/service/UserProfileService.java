@@ -57,6 +57,14 @@ public class UserProfileService {
         userRepository.delete(user);
     }
     
+    public Long getUserIdByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        String.format("User not found: %s", username)));
+        
+        return user.getId();
+    }
+    
     private UserProfileDTO mapToUserProfileDTO(User user) {
         UserProfileDTO profile = new UserProfileDTO();
         profile.setId(user.getId());
