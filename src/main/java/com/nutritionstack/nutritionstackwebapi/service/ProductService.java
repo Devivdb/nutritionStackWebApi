@@ -3,14 +3,19 @@ package com.nutritionstack.nutritionstackwebapi.service;
 import com.nutritionstack.nutritionstackwebapi.dto.ProductCreateRequestDTO;
 import com.nutritionstack.nutritionstackwebapi.dto.ProductResponseDTO;
 import com.nutritionstack.nutritionstackwebapi.dto.ProductUpdateRequestDTO;
+import com.nutritionstack.nutritionstackwebapi.exception.ProductValidationException;
 import com.nutritionstack.nutritionstackwebapi.exception.ProductAlreadyExistsException;
 import com.nutritionstack.nutritionstackwebapi.exception.ProductNotFoundException;
 import com.nutritionstack.nutritionstackwebapi.model.NutritionInfo;
 import com.nutritionstack.nutritionstackwebapi.model.Product;
+import com.nutritionstack.nutritionstackwebapi.model.Unit;
 import com.nutritionstack.nutritionstackwebapi.model.User;
 import com.nutritionstack.nutritionstackwebapi.repository.ProductRepository;
 import com.nutritionstack.nutritionstackwebapi.repository.UserRepository;
+import com.nutritionstack.nutritionstackwebapi.util.ProductValidationUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,26 +32,50 @@ public class ProductService {
         this.userRepository = userRepository;
     }
     
+    @Transactional
     public ProductResponseDTO createProduct(ProductCreateRequestDTO request, Long userId) {
-        validateProductDoesNotExist(request.getEan13Code());
+        // Validate product data using enhanced validation utility
+        ProductValidationUtil.ValidationResult validationResult = ProductValidationUtil.validateProduct(
+            request.getEan13Code(),
+            request.getProductName(),
+            request.getAmount(),
+            request.getUnit() != null ? request.getUnit().toString() : null,
+            request.getCalories(),
+            request.getProtein(),
+            request.getCarbs(),
+            request.getFat(),
+            request.getFiber(),
+            request.getSugar(),
+            request.getSalt()
+        );
         
+        if (!validationResult.isValid()) {
+            String errorMessage = "Product validation failed:\n" + 
+                String.join("\n", validationResult.getErrors());
+            throw new ProductValidationException(errorMessage);
+        }
+        
+        // Check if product already exists
+        validateProductDoesNotExist(validationResult.getCleanedEan13());
+        
+        // Create product with cleaned values
         Product product = new Product();
-        product.setEan13Code(request.getEan13Code());
+        product.setEan13Code(validationResult.getCleanedEan13());
         product.setProductName(request.getProductName());
         product.setAmount(request.getAmount());
-        product.setUnit(request.getUnit());
+        product.setUnit(validationResult.getCleanedUnit());
         product.setCreatedBy(userId);
         product.setCreatedAt(LocalDateTime.now());
         
-        // Set nutrition info
+        // Set nutrition info with defaults for null values
         NutritionInfo nutritionInfo = new NutritionInfo();
         nutritionInfo.setCalories(request.getCalories());
-        nutritionInfo.setProtein(request.getProtein());
-        nutritionInfo.setCarbs(request.getCarbs());
-        nutritionInfo.setFat(request.getFat());
-        nutritionInfo.setFiber(request.getFiber());
-        nutritionInfo.setSugar(request.getSugar());
-        nutritionInfo.setSalt(request.getSalt());
+        nutritionInfo.setProtein(request.getProtein() != null ? request.getProtein() : 0.0);
+        nutritionInfo.setCarbs(request.getCarbs() != null ? request.getCarbs() : 0.0);
+        nutritionInfo.setFat(request.getFat() != null ? request.getFat() : 0.0);
+        nutritionInfo.setFiber(request.getFiber() != null ? request.getFiber() : 0.0);
+        nutritionInfo.setSugar(request.getSugar() != null ? request.getSugar() : 0.0);
+        nutritionInfo.setSalt(request.getSalt() != null ? request.getSalt() : 0.0);
         product.setNutritionInfo(nutritionInfo);
         
         Product savedProduct = productRepository.save(product);
@@ -58,25 +87,49 @@ public class ProductService {
         return convertToResponseDTO(product);
     }
     
-    public ProductResponseDTO updateProduct(String ean13Code, ProductUpdateRequestDTO request) {
-        Product product = findProductByEan13Code(ean13Code);
+    @Transactional
+    public ProductResponseDTO updateProduct(String ean13Code, ProductUpdateRequestDTO request, Long userId) {
+        Product existingProduct = productRepository.findByEan13Code(ean13Code)
+                .orElseThrow(() -> new ProductValidationException("Product not found with EAN13 code: " + ean13Code));
         
-        // Update basic fields
-        if (request.getProductName() != null) {
-            product.setProductName(request.getProductName());
-        }
-        if (request.getAmount() != null) {
-            product.setAmount(request.getAmount());
-        }
-        if (request.getUnit() != null) {
-            product.setUnit(request.getUnit());
+        // Validate update data using enhanced validation utility
+        ProductValidationUtil.ValidationResult validationResult = ProductValidationUtil.validateProduct(
+            ean13Code, // Use existing EAN13 code for validation
+            request.getProductName(),
+            request.getAmount(),
+            request.getUnit() != null ? request.getUnit().toString() : null,
+            request.getCalories(),
+            request.getProtein(),
+            request.getCarbs(),
+            request.getFat(),
+            request.getFiber(),
+            request.getSugar(),
+            request.getSalt()
+        );
+        
+        if (!validationResult.isValid()) {
+            String errorMessage = "Product update validation failed:\n" + 
+                String.join("\n", validationResult.getErrors());
+            throw new ProductValidationException(errorMessage);
         }
         
-        // Update nutrition info
-        updateNutritionInfo(product.getNutritionInfo(), request);
+        // Update product with validated data
+        existingProduct.setProductName(request.getProductName());
+        existingProduct.setAmount(request.getAmount());
+        existingProduct.setUnit(validationResult.getCleanedUnit());
         
-        Product updatedProduct = productRepository.save(product);
-        return convertToResponseDTO(updatedProduct);
+        // Update nutrition info with defaults for null values
+        NutritionInfo nutritionInfo = existingProduct.getNutritionInfo();
+        nutritionInfo.setCalories(request.getCalories());
+        nutritionInfo.setProtein(request.getProtein() != null ? request.getProtein() : 0.0);
+        nutritionInfo.setCarbs(request.getCarbs() != null ? request.getCarbs() : 0.0);
+        nutritionInfo.setFat(request.getFat() != null ? request.getFat() : 0.0);
+        nutritionInfo.setFiber(request.getFiber() != null ? request.getFiber() : 0.0);
+        nutritionInfo.setSugar(request.getSugar() != null ? request.getSugar() : 0.0);
+        nutritionInfo.setSalt(request.getSalt() != null ? request.getSalt() : 0.0);
+        
+        Product savedProduct = productRepository.save(existingProduct);
+        return convertToResponseDTO(savedProduct);
     }
     
     public void deleteProduct(String ean13Code) {

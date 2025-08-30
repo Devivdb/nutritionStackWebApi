@@ -74,6 +74,13 @@ public class AdminService {
         userRepository.delete(userToDelete);
     }
     
+    public Long getUserIdByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        String.format("User not found with username: %s", username)));
+        return user.getId();
+    }
+    
     private AdminUserInfoDTO mapToAdminUserInfoDTO(User user) {
         AdminUserInfoDTO dto = new AdminUserInfoDTO();
         dto.setId(user.getId());
