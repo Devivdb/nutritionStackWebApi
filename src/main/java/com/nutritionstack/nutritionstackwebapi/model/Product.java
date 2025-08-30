@@ -27,10 +27,10 @@ public class Product {
     @Column(name = "amount", nullable = false)
     private Double amount;
     
-    @NotBlank(message = "Unit is required")
-    @Size(max = 50, message = "Unit must not exceed 50 characters")
-    @Column(name = "unit", nullable = false, length = 50)
-    private String unit;
+    @NotNull(message = "Unit is required")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "unit", nullable = false, length = 20)
+    private Unit unit;
     
     @NotNull(message = "Created by user ID is required")
     @Column(name = "created_by", nullable = false)
@@ -45,7 +45,7 @@ public class Product {
     public Product() {}
     
     public Product(String ean13Code, String productName, NutritionInfo nutritionInfo, 
-                   Double amount, String unit, Long createdBy) {
+                   Double amount, Unit unit, Long createdBy) {
         this.ean13Code = ean13Code;
         this.productName = productName;
         this.nutritionInfo = nutritionInfo;
@@ -92,11 +92,11 @@ public class Product {
         this.amount = amount;
     }
     
-    public String getUnit() {
+    public Unit getUnit() {
         return unit;
     }
     
-    public void setUnit(String unit) {
+    public void setUnit(Unit unit) {
         this.unit = unit;
     }
     

@@ -1,20 +1,21 @@
 package com.nutritionstack.nutritionstackwebapi.dto;
 
 import java.time.LocalDateTime;
+import com.nutritionstack.nutritionstackwebapi.model.Unit;
 
 public class ProductResponseDTO extends BaseNutritionDTO {
     
     private String ean13Code;
     private String productName;
     private Double amount;
-    private String unit;
+    private Unit unit;
     private String createdByUsername;
     private LocalDateTime createdAt;
     private Long bulkUploadId;
     
     public ProductResponseDTO() {}
     
-    public ProductResponseDTO(String ean13Code, String productName, Double amount, String unit,
+    public ProductResponseDTO(String ean13Code, String productName, Double amount, Unit unit,
                              Double calories, Double protein, Double carbs, Double fat, Double fiber, Double sugar,
                              Double salt, String createdByUsername, LocalDateTime createdAt, Long bulkUploadId) {
         super(calories, protein, carbs, fat, fiber, sugar, salt);
@@ -51,11 +52,11 @@ public class ProductResponseDTO extends BaseNutritionDTO {
         this.amount = amount;
     }
     
-    public String getUnit() {
+    public Unit getUnit() {
         return unit;
     }
     
-    public void setUnit(String unit) {
+    public void setUnit(Unit unit) {
         this.unit = unit;
     }
     

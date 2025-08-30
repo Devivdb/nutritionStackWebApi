@@ -6,7 +6,8 @@ import jakarta.validation.constraints.DecimalMin;
 @Embeddable
 public class NutritionInfo {
     
-    @DecimalMin(value = "0.0", message = "Calories must be non-negative")
+    @jakarta.validation.constraints.NotNull(message = "Calories is required")
+    @jakarta.validation.constraints.DecimalMin(value = "0.1", message = "Calories must be greater than 0")
     private Double calories;
     
     @DecimalMin(value = "0.0", message = "Protein must be non-negative")
