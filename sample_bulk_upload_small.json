@@ -1,0 +1,38 @@
+{
+  "products": [
+    {
+      "ean13Code": "1234567890345",
+      "productName": "Organic Bananas",
+      "amount": 100.0,
+      "unit": "g",
+      "calories": 89.0,
+      "protein": 1.1
+    },
+    {
+      "ean13Code": "1234567890134",
+      "productName": "Greek Yogurt Natural",
+      "amount": 100.0,
+      "unit": "g",
+      "calories": 59.0,
+      "protein": 10.0,
+      "carbs": 3.6,
+      "fat": 0.4,
+      "fiber": 0.0,
+      "sugar": 3.2,
+      "salt": 0.1
+    },
+    {
+      "ean13Code": "1234567890125",
+      "productName": "Chicken Breast Fillet",
+      "amount": 100.0,
+      "unit": "g",
+      "calories": 165.0,
+      "protein": 31.0,
+      "carbs": 0.0,
+      "fat": 3.6,
+      "fiber": 0.0,
+      "sugar": 0.0,
+      "salt": 0.2
+    }
+  ]
+}
