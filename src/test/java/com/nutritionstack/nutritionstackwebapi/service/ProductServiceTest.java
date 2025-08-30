@@ -5,8 +5,10 @@ import com.nutritionstack.nutritionstackwebapi.dto.ProductResponseDTO;
 import com.nutritionstack.nutritionstackwebapi.dto.ProductUpdateRequestDTO;
 import com.nutritionstack.nutritionstackwebapi.exception.ProductAlreadyExistsException;
 import com.nutritionstack.nutritionstackwebapi.exception.ProductNotFoundException;
+import com.nutritionstack.nutritionstackwebapi.exception.ProductValidationException;
 import com.nutritionstack.nutritionstackwebapi.model.NutritionInfo;
 import com.nutritionstack.nutritionstackwebapi.model.Product;
+import com.nutritionstack.nutritionstackwebapi.model.Unit;
 import com.nutritionstack.nutritionstackwebapi.model.User;
 import com.nutritionstack.nutritionstackwebapi.repository.ProductRepository;
 import com.nutritionstack.nutritionstackwebapi.repository.UserRepository;
@@ -61,7 +63,7 @@ class ProductServiceTest {
         testProduct.setProductName("Test Product");
         testProduct.setNutritionInfo(nutritionInfo);
         testProduct.setAmount(100.0);
-        testProduct.setUnit("g");
+        testProduct.setUnit(Unit.G);
         testProduct.setCreatedBy(1L);
         testProduct.setCreatedAt(LocalDateTime.now());
         
@@ -69,7 +71,7 @@ class ProductServiceTest {
         createRequest.setEan13Code("1234567890123");
         createRequest.setProductName("Test Product");
         createRequest.setAmount(100.0);
-        createRequest.setUnit("g");
+        createRequest.setUnit(Unit.G);
         createRequest.setCalories(100.0);
         createRequest.setProtein(5.0);
         createRequest.setCarbs(20.0);
@@ -81,7 +83,7 @@ class ProductServiceTest {
         updateRequest = new ProductUpdateRequestDTO();
         updateRequest.setProductName("Updated Product");
         updateRequest.setAmount(150.0);
-        updateRequest.setUnit("ml");
+        updateRequest.setUnit(Unit.ML);
         updateRequest.setCalories(150.0);
     }
     
@@ -100,7 +102,7 @@ class ProductServiceTest {
         assertEquals("1234567890123", result.getEan13Code());
         assertEquals("Test Product", result.getProductName());
         assertEquals(100.0, result.getAmount());
-        assertEquals("g", result.getUnit());
+        assertEquals(Unit.G, result.getUnit());
         assertEquals("testuser", result.getCreatedByUsername());
         
         verify(productRepository).existsByEan13Code("1234567890123");
@@ -135,7 +137,7 @@ class ProductServiceTest {
         assertEquals("1234567890123", result.getEan13Code());
         assertEquals("Test Product", result.getProductName());
         assertEquals(100.0, result.getAmount());
-        assertEquals("g", result.getUnit());
+        assertEquals(Unit.G, result.getUnit());
         assertEquals("testuser", result.getCreatedByUsername());
         
         verify(productRepository).findByEan13Code("1234567890123");
@@ -162,13 +164,13 @@ class ProductServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         
         // Act
-        ProductResponseDTO result = productService.updateProduct("1234567890123", updateRequest);
+        ProductResponseDTO result = productService.updateProduct("1234567890123", updateRequest, 1L);
         
         // Assert
         assertNotNull(result);
         assertEquals("Updated Product", result.getProductName());
         assertEquals(150.0, result.getAmount());
-        assertEquals("ml", result.getUnit());
+        assertEquals(Unit.ML, result.getUnit());
         
         verify(productRepository).findByEan13Code("1234567890123");
         verify(productRepository).save(any(Product.class));
@@ -180,8 +182,8 @@ class ProductServiceTest {
         when(productRepository.findByEan13Code("1234567890123")).thenReturn(Optional.empty());
         
         // Act & Assert
-        assertThrows(ProductNotFoundException.class, () -> {
-            productService.updateProduct("1234567890123", updateRequest);
+        assertThrows(ProductValidationException.class, () -> {
+            productService.updateProduct("1234567890123", updateRequest, 1L);
         });
         
         verify(productRepository).findByEan13Code("1234567890123");
