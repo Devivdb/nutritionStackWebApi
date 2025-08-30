@@ -1,6 +1,7 @@
 package com.nutritionstack.nutritionstackwebapi.exception;
 
 import com.nutritionstack.nutritionstackwebapi.constant.ErrorMessages;
+import com.nutritionstack.nutritionstackwebapi.exception.BulkUploadValidationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -28,13 +29,13 @@ public class GenericExceptionHandler {
         
         ErrorResponse errorResponse = new ErrorResponse(
                 LocalDateTime.now(),
-                HttpStatus.BAD_REQUEST.value(),
-                ErrorMessages.VALIDATION_ERROR,
-                ErrorMessages.INVALID_INPUT_DATA,
+                HttpStatus.UNPROCESSABLE_ENTITY.value(),
+                "Product Validation Error",
+                "Product data validation failed",
                 errors
         );
         
-        return ResponseEntity.badRequest().body(errorResponse);
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(errorResponse);
     }
     
     @ExceptionHandler(ProductNotFoundException.class)
@@ -63,6 +64,40 @@ public class GenericExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
     
+    @ExceptionHandler(ProductValidationException.class)
+    public ResponseEntity<ErrorResponse> handleProductValidationException(ProductValidationException ex) {
+        HttpStatus status = HttpStatus.UNPROCESSABLE_ENTITY;
+        
+        String message = ex.getMessage();
+        if (message != null) {
+            if (message.contains("already exists")) {
+                status = HttpStatus.CONFLICT;
+            } else if (message.contains("EAN13 code") ||
+                       message.contains("Product name") ||
+                       message.contains("Amount") ||
+                       message.contains("Unit") ||
+                       message.contains("Calories") ||
+                       message.contains("Protein") ||
+                       message.contains("Carbs") ||
+                       message.contains("Fat") ||
+                       message.contains("Fiber") ||
+                       message.contains("Sugar") ||
+                       message.contains("Salt")) {
+                status = HttpStatus.UNPROCESSABLE_ENTITY;
+            }
+        }
+        
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                status.value(),
+                "Product Validation Error",
+                ex.getMessage(),
+                null
+        );
+        
+        return ResponseEntity.status(status).body(errorResponse);
+    }
+    
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
         ErrorResponse errorResponse = new ErrorResponse(
@@ -87,6 +122,47 @@ public class GenericExceptionHandler {
         );
         
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    }
+    
+    @ExceptionHandler(BulkUploadValidationException.class)
+    public ResponseEntity<ErrorResponse> handleBulkUploadValidationException(BulkUploadValidationException ex) {
+        HttpStatus status = HttpStatus.UNPROCESSABLE_ENTITY;
+        
+        String message = ex.getMessage();
+        if (message != null) {
+            if (message.contains("Duplicate EAN13 codes found within the upload file") ||
+                message.contains("All") && message.contains("products in the file already exist")) {
+                status = HttpStatus.CONFLICT;
+            } else if (message.contains("File size exceeds maximum limit") ||
+                       message.contains("Only JSON files are allowed") ||
+                       message.contains("File must have .json extension") ||
+                       message.contains("File cannot be null or empty")) {
+                status = HttpStatus.UNPROCESSABLE_ENTITY;
+            } else if (message.contains("Product validation failed") ||
+                       message.contains("EAN13 code") ||
+                       message.contains("Product name") ||
+                       message.contains("Amount") ||
+                       message.contains("Unit") ||
+                       message.contains("Calories") ||
+                       message.contains("Protein") ||
+                       message.contains("Carbs") ||
+                       message.contains("Fat") ||
+                       message.contains("Fiber") ||
+                       message.contains("Sugar") ||
+                       message.contains("Salt")) {
+                status = HttpStatus.UNPROCESSABLE_ENTITY;
+            }
+        }
+        
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                status.value(),
+                "Bulk Upload Validation Error",
+                ex.getMessage(),
+                null
+        );
+        
+        return ResponseEntity.status(status).body(errorResponse);
     }
     
     @ExceptionHandler(RuntimeException.class)
