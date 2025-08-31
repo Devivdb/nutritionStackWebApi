@@ -368,7 +368,7 @@
 								"{{ean13Code}}"
 							]
 						},
-						"description": "Update product information\n\nPath Variables:\n- ean13Code: 13-digit EAN13 code\n\nBody:\n- All fields are optional - only provided fields will be updated\n- productName: Product name (max 255 chars)\n- amount: Serving amount (must be > 0)\n- unit: Unit of measurement (max 50 chars)\n- calories: Calories per unit (non-negative)\n- protein: Protein in grams (non-negative)\n- carbs: Carbohydrates in grams (non-negative)\n- fat: Fat in grams (non-negative)\n- fiber: Fiber in grams (non-negative)\n- sugar: Sugar in grams (non-negative)\n- salt: Salt in grams (non-negative)\n\nBusiness Rules:\n- Authenticated users can update products\n- Partial updates supported - only provided fields are updated\n- Amount must be greater than 0\n- All nutrition values must be non-negative"
+						"description": "Update product information\n\nPath Variables:\n- ean13Code: 13-digit EAN13 code\n\nBody:\n- All fields are optional - only provided fields will be updated\n- productName: Product name (max 255 chars)\n- amount: Serving amount (must be > 0)\n- unit: Unit of measurement (max 50 chars)\n- calories: Calories per unit (non-negative)\n- protein: Protein in grams (non-negative)\n- carbs: Carbohydrates in grams (non-negative)\n- fat: Fat in grams (non-negative)\n- fiber: Fiber in grams (non-negative)\n- sugar: Sugar in grams (non-negative)\n- salt: Salt in grams (non-negative)\n\nBusiness Rules:\n- **SECURITY: Only the product creator or admin can update products**\n- If a user tries to update a product they didn't create, they will receive a 403 Forbidden error\n- Error message: 'Access denied: You can only update products you created. Product [name] was created by another user.'\n- Partial updates supported - only provided fields are updated\n- Amount must be greater than 0\n- All nutrition values must be non-negative"
 					},
 					"response": []
 				},
@@ -423,6 +423,215 @@
 				}
 			],
 			"description": "Product management endpoints"
+		},
+		{
+			"name": "Logged Products",
+			"item": [
+				{
+					"name": "Log Product",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"ean13Code\": \"1234567890123\",\n    \"quantity\": 100.0,\n    \"unit\": \"g\",\n    \"mealType\": \"breakfast\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/logged-products",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"logged-products"
+							]
+						},
+						"description": "Log a product consumption with quantity, unit, and meal type. The system will automatically calculate nutrition values based on the product's EAN13 code and the specified quantity.\n\nBody:\n- ean13Code: 13-digit EAN13 code (required)\n- quantity: Amount consumed (required, must be > 0)\n- unit: Unit of measurement (required)\n- mealType: Type of meal (required: breakfast, lunch, dinner, snack)\n- logDate: When the product was consumed (optional, defaults to current time automatically)\n\nNote: logDate is completely optional - if not provided, the system automatically sets it to the current time.\n\nBusiness Rules:\n- Authenticated users can log products\n- Product must exist in the system\n- Quantity must be greater than 0\n- Log date is automatically set to current time if not provided\n- Nutrition values are automatically calculated based on product data and quantity\n\nResponse Format:\nReturns simplified data with only essential fields and calculated nutrition values"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Logged Products",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/logged-products",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"logged-products"
+							]
+						},
+						"description": "Get all logged products for the current user, ordered by log date (newest first)\n\nReturns:\n- Logged product details\n- Calculated nutrition values based on quantity consumed\n- Product information (name, EAN13)\n- Meal type and log date\n\nResponse Format:\nReturns simplified data with only essential fields and calculated nutrition values"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Logged Product by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/logged-products/{{logId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"logged-products",
+								"{{logId}}"
+							]
+						},
+						"description": "Get a specific logged product by its ID. The response includes calculated nutrition values based on the logged quantity and product information.\n\nPath Variables:\n- logId: The ID of the logged product to retrieve\n\nBusiness Rules:\n- Users can only access their own logged products\n- Returns 404 if logged product not found or doesn't belong to user\n\nResponse Format:\nReturns simplified data with only essential fields and calculated nutrition values"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Logged Product",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"quantity\": 150.0,\n    \"unit\": \"g\",\n    \"mealType\": \"lunch\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/logged-products/{{logId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"logged-products",
+								"{{logId}}"
+							]
+						},
+						"description": "Update a logged product's quantity, unit, meal type, or log date. Only the fields you want to change need to be included in the request body.\n\nPath Variables:\n- logId: The ID of the logged product to update\n\nBody (all optional):\n- quantity: New amount consumed\n- unit: New unit of measurement\n- mealType: New meal type\n- logDate: New log date (only needed if you want to change the timestamp)\n\nBusiness Rules:\n- Users can only update their own logged products\n- Quantity must be greater than 0 if provided\n- Log date cannot be in the future if provided\n- Nutrition values are automatically recalculated\n\nResponse Format:\nReturns simplified data with only essential fields and calculated nutrition values"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Logged Product",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/logged-products/{{logId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"logged-products",
+								"{{logId}}"
+							]
+						},
+						"description": "Delete a logged product by its ID. Only the owner of the logged product can delete it.\n\nPath Variables:\n- logId: The ID of the logged product to delete\n\nBusiness Rules:\n- Users can only delete their own logged products\n- Deletion is permanent and cannot be undone"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Logged Products by Date",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							                "raw": "{{baseUrl}}/api/logged-products/by-date?date=2024-01-15",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"logged-products",
+								"by-date"
+							],
+							"query": [
+								{
+									"key": "date",
+									"value": "2024-01-15",
+									"description": "Date in YYYY-MM-DD format (e.g., 2024-01-15)"
+								}
+							]
+						},
+						"description": "Get all logged products for the current user on a specific date\n\nQuery Parameters:\n- date: Date in YYYY-MM-DD format (e.g., 2024-01-15)\n\nReturns:\n- All logged products for the specified date\n- Calculated nutrition values for each product\n\nResponse Format:\nReturns simplified data with only essential fields and calculated nutrition values"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Logged Products by Meal Type",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/logged-products/by-meal-type?mealType=breakfast",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"logged-products",
+								"by-meal-type"
+							],
+							"query": [
+								{
+									"key": "mealType",
+									"value": "breakfast",
+									"description": "Meal type: breakfast, lunch, dinner, or snack"
+								}
+							]
+						},
+						"description": "Get all logged products for the current user of a specific meal type\n\nQuery Parameters:\n- mealType: Type of meal (breakfast, lunch, dinner, snack)\n\nReturns:\n- All logged products for the specified meal type\n- Calculated nutrition values for each product\n\nResponse Format:\nReturns simplified data with only essential fields and calculated nutrition values"
+					},
+					"response": []
+				}
+			],
+			"description": "Product consumption tracking endpoints for users to log their daily food intake and view calculated nutrition values\n\n💡 IMPORTANT: When logging new products, you do NOT need to provide a logDate - the system automatically sets it to the current time!"
 		},
 		{
 			"name": "Admin Management",
