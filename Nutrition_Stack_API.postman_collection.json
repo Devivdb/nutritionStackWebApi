@@ -2,9 +2,21 @@
 	"info": {
 		"_postman_id": "nutrition-stack-api",
 		"name": "Nutrition Stack API",
-		"description": "API collection for the Nutrition Stack Web API - User Authentication\n\n🔐 **Token Management**:\n- Run 'Register User' or 'Login User' first to get a JWT token\n- The token is automatically saved and used by all other requests\n- If you get 401/403 errors, the token is automatically cleared - just login again\n- No need to manually copy-paste tokens!",
+		"description": "API collection for the Nutrition Stack Web API - User Authentication\n\n🔐 **Token Management**:\n- Run 'Register User' or 'Login User' first to get a JWT token\n- The token is automatically saved and used by all other requests\n- If you get 401/403 errors, the token is automatically cleared - just login again\n- No need to manually copy-paste tokens!\n\n🍽️ **Meal Management Variables**:\n- `{{mealId}}`: Set this to the ID of the meal you want to work with\n- `{{productEan}}`: Set this to the EAN13 code of the product you want to work with\n- These variables make it easy to test different meals and products without changing URLs",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
+	"variable": [
+		{
+			"key": "mealId",
+			"value": "1",
+			"description": "ID of the meal to work with"
+		},
+		{
+			"key": "productEan",
+			"value": "1234567890123",
+			"description": "EAN13 code of the product to work with"
+		}
+	],
 	"event": [
 		{
 			"listen": "test",
@@ -896,6 +908,246 @@
 				}
 			],
 			"description": "Bulk upload management endpoints for admins to upload and manage multiple products at once"
+		},
+		{
+			"name": "Meals",
+			"item": [
+				{
+					"name": "Create Meal",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"mealName\": \"Healthy Breakfast\",\n    \"mealType\": \"breakfast\",\n    \"products\": [\n        {\n            \"ean13Code\": \"1234567890123\",\n            \"quantity\": 100,\n            \"unit\": \"g\"\n        },\n        {\n            \"ean13Code\": \"9876543210987\",\n            \"quantity\": 250,\n            \"unit\": \"ml\"\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/meals",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"meals"
+							]
+						},
+						"description": "Create a new meal with products\n\nExample Response:\n{\n    \"id\": 1,\n    \"mealName\": \"Healthy Breakfast\",\n    \"mealType\": \"breakfast\",\n    \"createdBy\": 1,\n    \"createdAt\": \"2025-08-31T17:21:52.788779\",\n    \"updatedAt\": null,\n    \"products\": [\n        {\n            \"id\": 1,\n            \"ean13Code\": \"1234567890133\",\n            \"productName\": \"Organic Bananas\",\n            \"quantity\": 100.0,\n            \"unit\": \"g\",\n            \"nutritionInfo\": {\n                \"calories\": 89.0,\n                \"protein\": 1.1,\n                \"carbs\": 22.8,\n                \"fat\": 0.3,\n                \"fiber\": 2.6,\n                \"sugar\": 12.2,\n                \"salt\": 0.0\n            }\n        }\n    ],\n    \"totalNutrition\": {\n        \"calories\": 89.0,\n        \"protein\": 1.1,\n        \"carbs\": 22.8,\n        \"fat\": 0.3,\n        \"fiber\": 2.6,\n        \"sugar\": 12.2,\n        \"salt\": 0.0\n    }\n}\n\nNote: Nutrition values are calculated based on the actual quantity entered, not the base product amount."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Meal by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/meals/{{mealId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"meals",
+								"{{mealId}}"
+							]
+						},
+						"description": "Retrieve a meal by its ID\n\nReturns the complete meal with scaled nutrition information and total nutrition summary.\n\nNutrition values are calculated based on the actual quantities entered by the user, not the base product amounts."
+					},
+					"response": []
+				},
+				{
+					"name": "Add Product to Meal",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"ean13Code\": \"5556667778889\",\n    \"quantity\": 50,\n    \"unit\": \"g\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/meals/{{mealId}}/products",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"meals",
+								"{{mealId}}",
+								"products"
+							]
+						},
+						"description": "Add a product to an existing meal"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Product Quantity in Meal",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"quantity\": 150,\n    \"unit\": \"g\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/meals/{{mealId}}/products/{{productEan}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"meals",
+								"{{mealId}}",
+								"products",
+								"{{productEan}}"
+							]
+						},
+						"description": "Update the quantity of a product in a meal"
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Product from Meal",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/meals/{{mealId}}/products/{{productEan}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"meals",
+								"{{mealId}}",
+								"products",
+								"{{productEan}}"
+							]
+						},
+						"description": "Remove a product from a meal"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Meal",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/meals/{{mealId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"meals",
+								"{{mealId}}"
+							]
+						},
+						"description": "Delete a meal (only creator or admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Log Meal",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/meals/{{mealId}}/log",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"meals",
+								"{{mealId}}",
+								"log"
+							]
+						},
+						"description": "Log a meal by its ID. This will log all underlying products into the logged_products table, calculating nutritional info based on product EAN, quantity, and unit. Returns confirmation of what was logged."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/meals/{{mealId}}/log",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"meals",
+										"{{mealId}}",
+										"log"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"mealId\": 1,\n    \"mealName\": \"Healthy Breakfast\",\n    \"message\": \"Meal successfully logged to consumption history\",\n    \"loggedAt\": \"2025-08-31T21:20:15.123456\",\n    \"productsLogged\": 2,\n    \"loggedProductDetails\": [\n        \"1234567890133 (100.0 g)\",\n        \"1234567890125 (250.0 ml)\"\n    ]\n}"
+						}
+					]
+				}
+			]
 		}
 	],
 	"event": [
