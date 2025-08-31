@@ -2,7 +2,9 @@ package com.nutritionstack.nutritionstackwebapi.model;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+@JsonDeserialize(using = MealTypeDeserializer.class)
 public enum MealType {
     BREAKFAST("breakfast"),
     LUNCH("lunch"),

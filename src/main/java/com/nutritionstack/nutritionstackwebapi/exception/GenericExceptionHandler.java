@@ -4,8 +4,12 @@ import com.nutritionstack.nutritionstackwebapi.constant.ErrorMessages;
 import com.nutritionstack.nutritionstackwebapi.exception.BulkUploadValidationException;
 import com.nutritionstack.nutritionstackwebapi.exception.LoggedProductNotFoundException;
 import com.nutritionstack.nutritionstackwebapi.exception.ProductNotFoundException;
+import com.nutritionstack.nutritionstackwebapi.exception.ResourceNotFoundException;
+import com.nutritionstack.nutritionstackwebapi.exception.ValidationException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
@@ -64,6 +68,81 @@ public class GenericExceptionHandler {
         );
         
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+    
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.NOT_FOUND.value(),
+                "Resource Not Found",
+                ex.getMessage(),
+                null
+        );
+        
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+    
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ErrorResponse> handleValidationException(ValidationException ex) {
+        HttpStatus status = HttpStatus.UNPROCESSABLE_ENTITY;
+        
+        String message = ex.getMessage();
+        if (message != null && message.contains("already exists")) {
+            status = HttpStatus.CONFLICT;
+        }
+        
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                status.value(),
+                "Validation Error",
+                ex.getMessage(),
+                null
+        );
+        
+        return ResponseEntity.status(status).body(errorResponse);
+    }
+    
+    @ExceptionHandler(JsonMappingException.class)
+    public ResponseEntity<ErrorResponse> handleJsonMappingException(JsonMappingException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.UNPROCESSABLE_ENTITY.value(),
+                "Invalid Request Data",
+                ex.getMessage(),
+                null
+        );
+        
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(errorResponse);
+    }
+    
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        String message = ex.getMessage();
+        
+        // Check if it's a meal type validation error
+        if (message != null && message.contains("Invalid meal type")) {
+            ErrorResponse errorResponse = new ErrorResponse(
+                    LocalDateTime.now(),
+                    HttpStatus.UNPROCESSABLE_ENTITY.value(),
+                    "Invalid Meal Type",
+                    message,
+                    null
+            );
+            
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(errorResponse);
+        }
+        
+        // Generic JSON parsing error
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "Invalid JSON",
+                "The request body contains invalid JSON format",
+                null
+        );
+        
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
     
     @ExceptionHandler(ProductAlreadyExistsException.class)
