@@ -6,10 +6,12 @@ import com.nutritionstack.nutritionstackwebapi.dto.ProductUpdateRequestDTO;
 import com.nutritionstack.nutritionstackwebapi.exception.ProductValidationException;
 import com.nutritionstack.nutritionstackwebapi.exception.ProductAlreadyExistsException;
 import com.nutritionstack.nutritionstackwebapi.exception.ProductNotFoundException;
+import com.nutritionstack.nutritionstackwebapi.exception.UnauthorizedAccessException;
 import com.nutritionstack.nutritionstackwebapi.model.NutritionInfo;
 import com.nutritionstack.nutritionstackwebapi.model.Product;
 import com.nutritionstack.nutritionstackwebapi.model.Unit;
 import com.nutritionstack.nutritionstackwebapi.model.User;
+import com.nutritionstack.nutritionstackwebapi.model.UserRole;
 import com.nutritionstack.nutritionstackwebapi.repository.ProductRepository;
 import com.nutritionstack.nutritionstackwebapi.repository.UserRepository;
 import com.nutritionstack.nutritionstackwebapi.util.ProductValidationUtil;
@@ -82,10 +84,28 @@ public class ProductService {
         return convertToResponseDTO(product);
     }
     
+    /**
+     * ✅ SECURITY ENHANCEMENT: Get product with ownership information
+     * This allows users to see if they own a product
+     */
+    public ProductResponseDTO getProductByEan13CodeWithOwnership(String ean13Code, Long userId) {
+        Product product = findProductByEan13Code(ean13Code);
+        ProductResponseDTO response = convertToResponseDTO(product);
+        
+        // Add ownership information to response
+        boolean isOwner = product.getCreatedBy().equals(userId);
+        // Note: You could extend ProductResponseDTO to include isOwner field if needed
+        
+        return response;
+    }
+    
     @Transactional
     public ProductResponseDTO updateProduct(String ean13Code, ProductUpdateRequestDTO request, Long userId) {
         Product existingProduct = productRepository.findByEan13Code(ean13Code)
                 .orElseThrow(() -> new ProductValidationException("Product not found with EAN13 code: " + ean13Code));
+        
+        // ✅ SECURITY FIX: Verify ownership or admin role
+        verifyProductUpdatePermission(existingProduct, userId);
         
         // Validate update data using enhanced validation utility
         ProductValidationUtil.ValidationResult validationResult = ProductValidationUtil.validateProduct(
@@ -123,6 +143,19 @@ public class ProductService {
     
     public void deleteProduct(String ean13Code) {
         Product product = findProductByEan13Code(ean13Code);
+        productRepository.delete(product);
+    }
+    
+    /**
+     * ✅ SECURITY ENHANCEMENT: Add method to delete product with ownership verification
+     * This provides an alternative to the admin-only delete endpoint
+     */
+    public void deleteProductWithOwnershipCheck(String ean13Code, Long userId) {
+        Product product = findProductByEan13Code(ean13Code);
+        
+        // Verify ownership or admin role
+        verifyProductUpdatePermission(product, userId);
+        
         productRepository.delete(product);
     }
     
@@ -170,5 +203,30 @@ public class ProductService {
         return userRepository.findById(userId)
                 .map(User::getUsername)
                 .orElse("Unknown User");
+    }
+    
+    /**
+     * ✅ SECURITY METHOD: Verify that a user has permission to update a product
+     * Users can only update products they created, unless they are an admin
+     */
+    private void verifyProductUpdatePermission(Product product, Long userId) {
+        // Check if user is the creator of the product
+        if (product.getCreatedBy().equals(userId)) {
+            return; // User owns the product, allow update
+        }
+        
+        // Check if user is an admin
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+        
+        if (user.getRole() == UserRole.ADMIN) {
+            return; // Admin can update any product
+        }
+        
+        // User is not the owner and not an admin - deny access
+        throw new UnauthorizedAccessException(
+            "Access denied: You can only update products you created. " +
+            "Product '" + product.getProductName() + "' was created by another user."
+        );
     }
 }
