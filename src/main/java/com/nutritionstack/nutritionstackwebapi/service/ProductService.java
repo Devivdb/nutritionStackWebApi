@@ -26,10 +26,12 @@ public class ProductService {
     
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final NutritionService nutritionService;
     
-    public ProductService(ProductRepository productRepository, UserRepository userRepository) {
+    public ProductService(ProductRepository productRepository, UserRepository userRepository, NutritionService nutritionService) {
         this.productRepository = productRepository;
         this.userRepository = userRepository;
+        this.nutritionService = nutritionService;
     }
     
     @Transactional
@@ -68,14 +70,7 @@ public class ProductService {
         product.setCreatedAt(LocalDateTime.now());
         
         // Set nutrition info with defaults for null values
-        NutritionInfo nutritionInfo = new NutritionInfo();
-        nutritionInfo.setCalories(request.getCalories());
-        nutritionInfo.setProtein(request.getProtein() != null ? request.getProtein() : 0.0);
-        nutritionInfo.setCarbs(request.getCarbs() != null ? request.getCarbs() : 0.0);
-        nutritionInfo.setFat(request.getFat() != null ? request.getFat() : 0.0);
-        nutritionInfo.setFiber(request.getFiber() != null ? request.getFiber() : 0.0);
-        nutritionInfo.setSugar(request.getSugar() != null ? request.getSugar() : 0.0);
-        nutritionInfo.setSalt(request.getSalt() != null ? request.getSalt() : 0.0);
+        NutritionInfo nutritionInfo = nutritionService.createNutritionInfoWithDefaults(request);
         product.setNutritionInfo(nutritionInfo);
         
         Product savedProduct = productRepository.save(product);
@@ -120,13 +115,7 @@ public class ProductService {
         
         // Update nutrition info with defaults for null values
         NutritionInfo nutritionInfo = existingProduct.getNutritionInfo();
-        nutritionInfo.setCalories(request.getCalories());
-        nutritionInfo.setProtein(request.getProtein() != null ? request.getProtein() : 0.0);
-        nutritionInfo.setCarbs(request.getCarbs() != null ? request.getCarbs() : 0.0);
-        nutritionInfo.setFat(request.getFat() != null ? request.getFat() : 0.0);
-        nutritionInfo.setFiber(request.getFiber() != null ? request.getFiber() : 0.0);
-        nutritionInfo.setSugar(request.getSugar() != null ? request.getSugar() : 0.0);
-        nutritionInfo.setSalt(request.getSalt() != null ? request.getSalt() : 0.0);
+        nutritionService.updateNutritionInfo(nutritionInfo, request);
         
         Product savedProduct = productRepository.save(existingProduct);
         return convertToResponseDTO(savedProduct);
@@ -154,29 +143,7 @@ public class ProductService {
                 .orElseThrow(() -> new ProductNotFoundException(ean13Code));
     }
     
-    private void updateNutritionInfo(NutritionInfo nutritionInfo, ProductUpdateRequestDTO request) {
-        if (request.getCalories() != null) {
-            nutritionInfo.setCalories(request.getCalories());
-        }
-        if (request.getProtein() != null) {
-            nutritionInfo.setProtein(request.getProtein());
-        }
-        if (request.getCarbs() != null) {
-            nutritionInfo.setCarbs(request.getCarbs());
-        }
-        if (request.getFat() != null) {
-            nutritionInfo.setFat(request.getFat());
-        }
-        if (request.getFiber() != null) {
-            nutritionInfo.setFiber(request.getFiber());
-        }
-        if (request.getSugar() != null) {
-            nutritionInfo.setSugar(request.getSugar());
-        }
-        if (request.getSalt() != null) {
-            nutritionInfo.setSalt(request.getSalt());
-        }
-    }
+
     
     private ProductResponseDTO convertToResponseDTO(Product product) {
         String createdByUsername = getUsernameById(product.getCreatedBy());
