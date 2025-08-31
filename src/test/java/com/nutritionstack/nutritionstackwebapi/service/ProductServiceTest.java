@@ -36,6 +36,9 @@ class ProductServiceTest {
     @Mock
     private UserRepository userRepository;
     
+    @Mock
+    private NutritionService nutritionService;
+    
     @InjectMocks
     private ProductService productService;
     
@@ -93,6 +96,17 @@ class ProductServiceTest {
         when(productRepository.existsByEan13Code("1234567890123")).thenReturn(false);
         when(productRepository.save(any(Product.class))).thenReturn(testProduct);
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        
+        // Mock NutritionService behavior
+        NutritionInfo mockNutritionInfo = new NutritionInfo();
+        mockNutritionInfo.setCalories(100.0);
+        mockNutritionInfo.setProtein(5.0);
+        mockNutritionInfo.setCarbs(20.0);
+        mockNutritionInfo.setFat(2.0);
+        mockNutritionInfo.setFiber(3.0);
+        mockNutritionInfo.setSugar(10.0);
+        mockNutritionInfo.setSalt(0.5);
+        when(nutritionService.createNutritionInfoWithDefaults(createRequest)).thenReturn(mockNutritionInfo);
         
         // Act
         ProductResponseDTO result = productService.createProduct(createRequest, 1L);
@@ -162,6 +176,9 @@ class ProductServiceTest {
         when(productRepository.findByEan13Code("1234567890123")).thenReturn(Optional.of(testProduct));
         when(productRepository.save(any(Product.class))).thenReturn(testProduct);
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        
+        // Mock NutritionService behavior
+        doNothing().when(nutritionService).updateNutritionInfo(any(NutritionInfo.class), eq(updateRequest));
         
         // Act
         ProductResponseDTO result = productService.updateProduct("1234567890123", updateRequest, 1L);
