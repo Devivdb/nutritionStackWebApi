@@ -2,6 +2,8 @@ package com.nutritionstack.nutritionstackwebapi.exception;
 
 import com.nutritionstack.nutritionstackwebapi.constant.ErrorMessages;
 import com.nutritionstack.nutritionstackwebapi.exception.BulkUploadValidationException;
+import com.nutritionstack.nutritionstackwebapi.exception.LoggedProductNotFoundException;
+import com.nutritionstack.nutritionstackwebapi.exception.ProductNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -44,6 +46,19 @@ public class GenericExceptionHandler {
                 LocalDateTime.now(),
                 HttpStatus.NOT_FOUND.value(),
                 "Product Not Found",
+                ex.getMessage(),
+                null
+        );
+        
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+    
+    @ExceptionHandler(LoggedProductNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleLoggedProductNotFoundException(LoggedProductNotFoundException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.NOT_FOUND.value(),
+                "Logged Product Not Found",
                 ex.getMessage(),
                 null
         );
