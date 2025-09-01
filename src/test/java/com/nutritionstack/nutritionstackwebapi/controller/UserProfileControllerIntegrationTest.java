@@ -1,11 +1,11 @@
 package com.nutritionstack.nutritionstackwebapi.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nutritionstack.nutritionstackwebapi.dto.UserProfileUpdateRequestDTO;
-import com.nutritionstack.nutritionstackwebapi.model.User;
-import com.nutritionstack.nutritionstackwebapi.model.UserRole;
-import com.nutritionstack.nutritionstackwebapi.repository.UserRepository;
-import com.nutritionstack.nutritionstackwebapi.service.JwtService;
+import com.nutritionstack.nutritionstackwebapi.dto.user.UserProfileUpdateRequestDTO;
+import com.nutritionstack.nutritionstackwebapi.model.auth.User;
+import com.nutritionstack.nutritionstackwebapi.model.auth.UserRole;
+import com.nutritionstack.nutritionstackwebapi.repository.auth.UserRepository;
+import com.nutritionstack.nutritionstackwebapi.service.auth.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +16,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-
 import java.time.LocalDateTime;
-
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -52,11 +50,9 @@ class UserProfileControllerIntegrationTest {
                 .build();
         
         objectMapper = new ObjectMapper();
-        
-        // Clean up database
+
         userRepository.deleteAll();
-        
-        // Create test user
+
         testUser = User.builder()
                 .username("testuser")
                 .password(passwordEncoder.encode("password"))
@@ -64,8 +60,7 @@ class UserProfileControllerIntegrationTest {
                 .build();
         testUser.setCreatedAt(LocalDateTime.now());
         testUser = userRepository.save(testUser);
-        
-        // Generate token
+
         userToken = jwtService.generateToken(testUser);
     }
     

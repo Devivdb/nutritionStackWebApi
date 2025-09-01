@@ -1,13 +1,14 @@
 package com.nutritionstack.nutritionstackwebapi.service;
 
-import com.nutritionstack.nutritionstackwebapi.dto.BulkUploadDataDTO;
-import com.nutritionstack.nutritionstackwebapi.dto.BulkUploadResponseDTO;
-import com.nutritionstack.nutritionstackwebapi.dto.ProductCreateRequestDTO;
+import com.nutritionstack.nutritionstackwebapi.dto.product.BulkUploadDataDTO;
+import com.nutritionstack.nutritionstackwebapi.dto.product.BulkUploadResponseDTO;
+import com.nutritionstack.nutritionstackwebapi.dto.product.ProductCreateRequestDTO;
 import com.nutritionstack.nutritionstackwebapi.exception.BulkUploadValidationException;
-import com.nutritionstack.nutritionstackwebapi.model.BulkUpload;
-import com.nutritionstack.nutritionstackwebapi.model.Unit;
-import com.nutritionstack.nutritionstackwebapi.model.User;
-import com.nutritionstack.nutritionstackwebapi.repository.ProductRepository;
+import com.nutritionstack.nutritionstackwebapi.model.product.BulkUpload;
+import com.nutritionstack.nutritionstackwebapi.model.nutrition.Unit;
+import com.nutritionstack.nutritionstackwebapi.model.auth.User;
+import com.nutritionstack.nutritionstackwebapi.repository.product.ProductRepository;
+import com.nutritionstack.nutritionstackwebapi.service.product.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,10 +16,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
-
 import java.util.Arrays;
 import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -78,7 +77,6 @@ class BulkUploadServiceTest {
     
     @Test
     void createBulkUpload_WithValidFile_ShouldSucceed() throws Exception {
-        // Arrange
         Long userId = 1L;
         
         BulkUpload savedBulkUpload = new BulkUpload("test_products.json", 1, userId);
@@ -92,11 +90,9 @@ class BulkUploadServiceTest {
         when(productRepository.findEan13CodesByEan13CodeIn(anyList())).thenReturn(Arrays.asList());
         when(managementService.saveBulkUpload(any(BulkUpload.class))).thenReturn(savedBulkUpload);
         when(managementService.getUsernameById(userId)).thenReturn("testadmin");
-        
-        // Act
+
         var result = bulkUploadService.createBulkUpload(validJsonFile, userId);
-        
-        // Assert
+
         assertNotNull(result);
         assertEquals("test_products.json", result.getFileName());
         assertEquals(1, result.getProductCount());
@@ -112,7 +108,6 @@ class BulkUploadServiceTest {
     
     @Test
     void createBulkUpload_WithEmptyFile_ShouldThrowException() {
-        // Arrange
         MockMultipartFile emptyFile = new MockMultipartFile(
             "file",
             "empty.json",
@@ -122,8 +117,7 @@ class BulkUploadServiceTest {
         
         doThrow(new BulkUploadValidationException("No file was uploaded"))
             .when(fileService).validateUploadedFile(emptyFile);
-        
-        // Act & Assert
+
         assertThrows(BulkUploadValidationException.class, () -> {
             bulkUploadService.createBulkUpload(emptyFile, 1L);
         });
@@ -131,7 +125,6 @@ class BulkUploadServiceTest {
     
     @Test
     void createBulkUpload_WithInvalidContentType_ShouldThrowException() {
-        // Arrange
         MockMultipartFile invalidFile = new MockMultipartFile(
             "file",
             "test.txt",
@@ -141,8 +134,7 @@ class BulkUploadServiceTest {
         
         doThrow(new BulkUploadValidationException("Only JSON files are allowed"))
             .when(fileService).validateUploadedFile(invalidFile);
-        
-        // Act & Assert
+
         assertThrows(BulkUploadValidationException.class, () -> {
             bulkUploadService.createBulkUpload(invalidFile, 1L);
         });
@@ -150,7 +142,6 @@ class BulkUploadServiceTest {
     
     @Test
     void createBulkUpload_WithInvalidFileExtension_ShouldThrowException() {
-        // Arrange
         MockMultipartFile invalidFile = new MockMultipartFile(
             "file",
             "test.txt",
@@ -160,8 +151,7 @@ class BulkUploadServiceTest {
         
         doThrow(new BulkUploadValidationException("File must have .json extension"))
             .when(fileService).validateUploadedFile(invalidFile);
-        
-        // Act & Assert
+
         assertThrows(BulkUploadValidationException.class, () -> {
             bulkUploadService.createBulkUpload(invalidFile, 1L);
         });
@@ -169,7 +159,6 @@ class BulkUploadServiceTest {
     
     @Test
     void createBulkUpload_WithTooManyProducts_ShouldThrowException() throws Exception {
-        // Arrange
         BulkUploadDataDTO largeUploadData = new BulkUploadDataDTO();
         List<ProductCreateRequestDTO> manyProducts = Arrays.asList(new ProductCreateRequestDTO[1001]);
         largeUploadData.setProducts(manyProducts);
@@ -177,8 +166,7 @@ class BulkUploadServiceTest {
         when(fileService.parseJsonFile(any(MockMultipartFile.class))).thenReturn(largeUploadData);
         doThrow(new BulkUploadValidationException("Cannot upload more than 1000 products at once"))
             .when(validationService).validateBulkUploadData(largeUploadData);
-        
-        // Act & Assert
+
         assertThrows(BulkUploadValidationException.class, () -> {
             bulkUploadService.createBulkUpload(validJsonFile, 1L);
         });
@@ -186,57 +174,45 @@ class BulkUploadServiceTest {
     
     @Test
     void getAllBulkUploads_ShouldDelegateToManagementService() {
-        // Arrange
         List<BulkUploadResponseDTO> expectedUploads = Arrays.asList();
         when(managementService.getAllBulkUploads()).thenReturn(expectedUploads);
-        
-        // Act
+
         var result = bulkUploadService.getAllBulkUploads();
-        
-        // Assert
+
         assertEquals(expectedUploads, result);
         verify(managementService).getAllBulkUploads();
     }
     
     @Test
     void getBulkUploadsByUser_ShouldDelegateToManagementService() {
-        // Arrange
         Long userId = 1L;
         List<BulkUploadResponseDTO> expectedUploads = Arrays.asList();
         when(managementService.getBulkUploadsByUser(userId)).thenReturn(expectedUploads);
-        
-        // Act
+
         var result = bulkUploadService.getBulkUploadsByUser(userId);
-        
-        // Assert
+
         assertEquals(expectedUploads, result);
         verify(managementService).getBulkUploadsByUser(userId);
     }
     
     @Test
     void getBulkUploadById_ShouldDelegateToManagementService() {
-        // Arrange
         Long bulkUploadId = 1L;
         BulkUploadResponseDTO expectedUpload = new BulkUploadResponseDTO();
         when(managementService.getBulkUploadById(bulkUploadId)).thenReturn(expectedUpload);
-        
-        // Act
+
         var result = bulkUploadService.getBulkUploadById(bulkUploadId);
-        
-        // Assert
+
         assertEquals(expectedUpload, result);
         verify(managementService).getBulkUploadById(bulkUploadId);
     }
     
     @Test
     void deleteProductsByBulkUploadId_ShouldDelegateToManagementService() {
-        // Arrange
         Long bulkUploadId = 1L;
-        
-        // Act
+
         bulkUploadService.deleteProductsByBulkUploadId(bulkUploadId);
-        
-        // Assert
+
         verify(managementService).deleteProductsByBulkUploadId(bulkUploadId);
     }
 }

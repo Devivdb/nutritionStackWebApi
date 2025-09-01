@@ -5,9 +5,7 @@ import org.springframework.http.ResponseEntity;
 
 public final class GenericResponseBuilder {
     
-    private GenericResponseBuilder() {
-        // Prevent instantiation
-    }
+    private GenericResponseBuilder() {}
     
     public static <T> ResponseEntity<T> success(T body) {
         return ResponseEntity.ok(body);

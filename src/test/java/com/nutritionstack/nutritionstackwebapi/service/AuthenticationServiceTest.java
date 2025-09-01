@@ -1,14 +1,16 @@
 package com.nutritionstack.nutritionstackwebapi.service;
 
 import com.nutritionstack.nutritionstackwebapi.constant.ErrorMessages;
-import com.nutritionstack.nutritionstackwebapi.dto.AuthResponseDTO;
-import com.nutritionstack.nutritionstackwebapi.dto.UserLoginRequestDTO;
-import com.nutritionstack.nutritionstackwebapi.dto.UserRegistrationRequestDTO;
+import com.nutritionstack.nutritionstackwebapi.dto.auth.AuthResponseDTO;
+import com.nutritionstack.nutritionstackwebapi.dto.auth.UserLoginRequestDTO;
+import com.nutritionstack.nutritionstackwebapi.dto.auth.UserRegistrationRequestDTO;
 import com.nutritionstack.nutritionstackwebapi.exception.InvalidCredentialsException;
 import com.nutritionstack.nutritionstackwebapi.exception.UserAlreadyExistsException;
-import com.nutritionstack.nutritionstackwebapi.model.User;
-import com.nutritionstack.nutritionstackwebapi.model.UserRole;
-import com.nutritionstack.nutritionstackwebapi.repository.UserRepository;
+import com.nutritionstack.nutritionstackwebapi.model.auth.User;
+import com.nutritionstack.nutritionstackwebapi.model.auth.UserRole;
+import com.nutritionstack.nutritionstackwebapi.repository.auth.UserRepository;
+import com.nutritionstack.nutritionstackwebapi.service.auth.AuthenticationService;
+import com.nutritionstack.nutritionstackwebapi.service.auth.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,9 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
 import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -54,16 +54,13 @@ class AuthenticationServiceTest {
     
     @Test
     void registerUser_ShouldCreateNewUser_WhenValidRequest() {
-        // Arrange
         when(userRepository.existsByUsername("testuser")).thenReturn(false);
         when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(testUser);
         when(jwtService.generateToken(testUser)).thenReturn("jwtToken");
-        
-        // Act
+
         AuthResponseDTO response = authenticationService.registerUser(registrationRequest);
-        
-        // Assert
+
         assertNotNull(response);
         assertEquals("jwtToken", response.getToken());
         assertEquals("testuser", response.getUsername());
@@ -78,10 +75,8 @@ class AuthenticationServiceTest {
     
     @Test
     void registerUser_ShouldThrowException_WhenUsernameExists() {
-        // Arrange
         when(userRepository.existsByUsername("testuser")).thenReturn(true);
-        
-        // Act & Assert
+
         UserAlreadyExistsException exception = assertThrows(UserAlreadyExistsException.class, () -> {
             authenticationService.registerUser(registrationRequest);
         });
@@ -93,15 +88,12 @@ class AuthenticationServiceTest {
     
     @Test
     void loginUser_ShouldReturnToken_WhenValidCredentials() {
-        // Arrange
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
         when(passwordEncoder.matches("password123", "encodedPassword")).thenReturn(true);
         when(jwtService.generateToken(testUser)).thenReturn("jwtToken");
-        
-        // Act
+
         AuthResponseDTO response = authenticationService.loginUser(loginRequest);
-        
-        // Assert
+
         assertNotNull(response);
         assertEquals("jwtToken", response.getToken());
         assertEquals("testuser", response.getUsername());
@@ -115,10 +107,8 @@ class AuthenticationServiceTest {
     
     @Test
     void loginUser_ShouldThrowException_WhenUserNotFound() {
-        // Arrange
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.empty());
-        
-        // Act & Assert
+
         UsernameNotFoundException exception = assertThrows(UsernameNotFoundException.class, () -> {
             authenticationService.loginUser(loginRequest);
         });
@@ -130,11 +120,9 @@ class AuthenticationServiceTest {
     
     @Test
     void loginUser_ShouldThrowException_WhenInvalidPassword() {
-        // Arrange
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
         when(passwordEncoder.matches("password123", "encodedPassword")).thenReturn(false);
-        
-        // Act & Assert
+
         InvalidCredentialsException exception = assertThrows(InvalidCredentialsException.class, () -> {
             authenticationService.loginUser(loginRequest);
         });

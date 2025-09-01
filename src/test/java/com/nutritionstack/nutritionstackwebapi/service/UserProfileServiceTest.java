@@ -1,11 +1,12 @@
 package com.nutritionstack.nutritionstackwebapi.service;
 
-import com.nutritionstack.nutritionstackwebapi.dto.UserProfileDTO;
-import com.nutritionstack.nutritionstackwebapi.dto.UserProfileUpdateRequestDTO;
+import com.nutritionstack.nutritionstackwebapi.dto.user.UserProfileDTO;
+import com.nutritionstack.nutritionstackwebapi.dto.user.UserProfileUpdateRequestDTO;
 import com.nutritionstack.nutritionstackwebapi.exception.UserAlreadyExistsException;
-import com.nutritionstack.nutritionstackwebapi.model.User;
-import com.nutritionstack.nutritionstackwebapi.model.UserRole;
-import com.nutritionstack.nutritionstackwebapi.repository.UserRepository;
+import com.nutritionstack.nutritionstackwebapi.model.auth.User;
+import com.nutritionstack.nutritionstackwebapi.model.auth.UserRole;
+import com.nutritionstack.nutritionstackwebapi.repository.auth.UserRepository;
+import com.nutritionstack.nutritionstackwebapi.service.user.UserProfileService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,10 +15,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
 import java.time.LocalDateTime;
 import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -48,13 +47,10 @@ class UserProfileServiceTest {
     
     @Test
     void getUserProfile_ShouldReturnProfile_WhenUserExists() {
-        // Arrange
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
         
-        // Act
         UserProfileDTO profile = userProfileService.getUserProfile("testuser");
-        
-        // Assert
+
         assertNotNull(profile);
         assertEquals(1L, profile.getId());
         assertEquals("testuser", profile.getUsername());
@@ -66,10 +62,8 @@ class UserProfileServiceTest {
     
     @Test
     void getUserProfile_ShouldThrowException_WhenUserNotFound() {
-        // Arrange
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.empty());
         
-        // Act & Assert
         UsernameNotFoundException exception = assertThrows(UsernameNotFoundException.class, () -> {
             userProfileService.getUserProfile("testuser");
         });
@@ -80,16 +74,13 @@ class UserProfileServiceTest {
     
     @Test
     void updateUserProfile_ShouldUpdateBothFields_WhenBothProvided() {
-        // Arrange
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
         when(userRepository.existsByUsername("newusername")).thenReturn(false);
         when(passwordEncoder.encode("newpassword123")).thenReturn("newEncodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(testUser);
         
-        // Act
         UserProfileDTO updatedProfile = userProfileService.updateUserProfile("testuser", updateRequest);
         
-        // Assert
         assertNotNull(updatedProfile);
         assertEquals("newusername", updatedProfile.getUsername());
         
@@ -101,16 +92,13 @@ class UserProfileServiceTest {
     
     @Test
     void updateUserProfile_ShouldUpdateOnlyUsername_WhenOnlyUsernameProvided() {
-        // Arrange
         UserProfileUpdateRequestDTO usernameOnlyRequest = new UserProfileUpdateRequestDTO("newusername", null);
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
         when(userRepository.existsByUsername("newusername")).thenReturn(false);
         when(userRepository.save(any(User.class))).thenReturn(testUser);
         
-        // Act
         UserProfileDTO updatedProfile = userProfileService.updateUserProfile("testuser", usernameOnlyRequest);
         
-        // Assert
         assertNotNull(updatedProfile);
         
         verify(userRepository).findByUsername("testuser");
@@ -121,16 +109,13 @@ class UserProfileServiceTest {
     
     @Test
     void updateUserProfile_ShouldUpdateOnlyPassword_WhenOnlyPasswordProvided() {
-        // Arrange
         UserProfileUpdateRequestDTO passwordOnlyRequest = new UserProfileUpdateRequestDTO(null, "newpassword123");
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
         when(passwordEncoder.encode("newpassword123")).thenReturn("newEncodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(testUser);
         
-        // Act
         UserProfileDTO updatedProfile = userProfileService.updateUserProfile("testuser", passwordOnlyRequest);
         
-        // Assert
         assertNotNull(updatedProfile);
         
         verify(userRepository).findByUsername("testuser");
@@ -141,15 +126,12 @@ class UserProfileServiceTest {
     
     @Test
     void updateUserProfile_ShouldNotUpdate_WhenNoFieldsProvided() {
-        // Arrange
         UserProfileUpdateRequestDTO emptyRequest = new UserProfileUpdateRequestDTO(null, null);
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(User.class))).thenReturn(testUser);
         
-        // Act
         UserProfileDTO updatedProfile = userProfileService.updateUserProfile("testuser", emptyRequest);
         
-        // Assert
         assertNotNull(updatedProfile);
         
         verify(userRepository).findByUsername("testuser");
@@ -160,11 +142,9 @@ class UserProfileServiceTest {
     
     @Test
     void updateUserProfile_ShouldThrowException_WhenUsernameAlreadyExists() {
-        // Arrange
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
         when(userRepository.existsByUsername("newusername")).thenReturn(true);
         
-        // Act & Assert
         UserAlreadyExistsException exception = assertThrows(UserAlreadyExistsException.class, () -> {
             userProfileService.updateUserProfile("testuser", updateRequest);
         });
@@ -177,23 +157,18 @@ class UserProfileServiceTest {
     
     @Test
     void deleteUserAccount_ShouldDeleteUser_WhenUserExists() {
-        // Arrange
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
         
-        // Act
         userProfileService.deleteUserAccount("testuser");
         
-        // Assert
         verify(userRepository).findByUsername("testuser");
         verify(userRepository).delete(testUser);
     }
     
     @Test
     void deleteUserAccount_ShouldThrowException_WhenUserNotFound() {
-        // Arrange
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.empty());
         
-        // Act & Assert
         UsernameNotFoundException exception = assertThrows(UsernameNotFoundException.class, () -> {
             userProfileService.deleteUserAccount("testuser");
         });

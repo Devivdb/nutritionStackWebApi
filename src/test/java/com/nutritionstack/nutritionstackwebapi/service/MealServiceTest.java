@@ -1,19 +1,21 @@
 package com.nutritionstack.nutritionstackwebapi.service;
 
-import com.nutritionstack.nutritionstackwebapi.dto.*;
-import com.nutritionstack.nutritionstackwebapi.model.*;
-import com.nutritionstack.nutritionstackwebapi.repository.*;
+import com.nutritionstack.nutritionstackwebapi.dto.meal.*;
+import com.nutritionstack.nutritionstackwebapi.model.meal.*;
+import com.nutritionstack.nutritionstackwebapi.model.nutrition.*;
+import com.nutritionstack.nutritionstackwebapi.repository.meal.*;
+import com.nutritionstack.nutritionstackwebapi.repository.tracking.*;
+import com.nutritionstack.nutritionstackwebapi.service.meal.MealDtoConverterService;
+import com.nutritionstack.nutritionstackwebapi.service.meal.MealService;
+import com.nutritionstack.nutritionstackwebapi.service.meal.MealValidationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -69,7 +71,6 @@ class MealServiceTest {
 
     @Test
     void createMeal_WithValidData_ShouldCreateMeal() {
-        // Arrange
         when(mealRepository.save(any(Meal.class))).thenAnswer(invocation -> {
             Meal meal = invocation.getArgument(0);
             meal.setId(1L);
@@ -78,10 +79,8 @@ class MealServiceTest {
         when(mealDtoConverterService.convertToResponseDTO(any(Meal.class)))
             .thenReturn(expectedResponse);
 
-        // Act
         MealResponseDTO result = mealService.createMeal(validRequest, 1L);
 
-        // Assert
         assertNotNull(result);
         assertEquals(expectedResponse, result);
         verify(mealValidationService).validateUserExists(1L);
@@ -91,16 +90,13 @@ class MealServiceTest {
 
     @Test
     void getMealById_WithValidId_ShouldReturnMeal() {
-        // Arrange
         when(mealValidationService.getMealEntityByIdAndUser(1L, 1L, false))
             .thenReturn(validMeal);
         when(mealDtoConverterService.convertToResponseDTO(validMeal))
             .thenReturn(expectedResponse);
 
-        // Act
         MealResponseDTO result = mealService.getMealById(1L, 1L, false);
 
-        // Assert
         assertNotNull(result);
         assertEquals(expectedResponse, result);
         verify(mealValidationService).getMealEntityByIdAndUser(1L, 1L, false);
@@ -109,14 +105,11 @@ class MealServiceTest {
 
     @Test
     void deleteMeal_WithValidId_ShouldDeleteMeal() {
-        // Arrange
         when(mealValidationService.getMealEntityByIdAndUser(1L, 1L, false))
             .thenReturn(validMeal);
 
-        // Act
         mealService.deleteMeal(1L, 1L, false);
 
-        // Assert
         verify(mealValidationService).getMealEntityByIdAndUser(1L, 1L, false);
         verify(mealRepository).delete(validMeal);
     }

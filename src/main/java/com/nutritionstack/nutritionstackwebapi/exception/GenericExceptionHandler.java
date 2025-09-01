@@ -1,11 +1,6 @@
 package com.nutritionstack.nutritionstackwebapi.exception;
 
 import com.nutritionstack.nutritionstackwebapi.constant.ErrorMessages;
-import com.nutritionstack.nutritionstackwebapi.exception.BulkUploadValidationException;
-import com.nutritionstack.nutritionstackwebapi.exception.LoggedProductNotFoundException;
-import com.nutritionstack.nutritionstackwebapi.exception.ProductNotFoundException;
-import com.nutritionstack.nutritionstackwebapi.exception.ResourceNotFoundException;
-import com.nutritionstack.nutritionstackwebapi.exception.ValidationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -119,8 +114,7 @@ public class GenericExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
         String message = ex.getMessage();
-        
-        // Check if it's a meal type validation error
+
         if (message != null && message.contains("Invalid meal type")) {
             ErrorResponse errorResponse = new ErrorResponse(
                     LocalDateTime.now(),
@@ -132,8 +126,7 @@ public class GenericExceptionHandler {
             
             return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(errorResponse);
         }
-        
-        // Generic JSON parsing error
+
         ErrorResponse errorResponse = new ErrorResponse(
                 LocalDateTime.now(),
                 HttpStatus.BAD_REQUEST.value(),

@@ -3,7 +3,6 @@ package com.nutritionstack.nutritionstackwebapi.constant;
 public final class ErrorMessages {
     
     private ErrorMessages() {
-        // Prevent instantiation
     }
     
     // User-related error messages

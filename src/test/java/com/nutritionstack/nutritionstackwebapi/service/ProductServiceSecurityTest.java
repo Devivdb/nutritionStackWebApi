@@ -1,20 +1,25 @@
 package com.nutritionstack.nutritionstackwebapi.service;
 
-import com.nutritionstack.nutritionstackwebapi.dto.ProductUpdateRequestDTO;
+import com.nutritionstack.nutritionstackwebapi.dto.product.ProductUpdateRequestDTO;
 import com.nutritionstack.nutritionstackwebapi.exception.UnauthorizedAccessException;
-import com.nutritionstack.nutritionstackwebapi.model.*;
-import com.nutritionstack.nutritionstackwebapi.repository.ProductRepository;
-import com.nutritionstack.nutritionstackwebapi.repository.UserRepository;
+import com.nutritionstack.nutritionstackwebapi.model.auth.*;
+import com.nutritionstack.nutritionstackwebapi.model.auth.*;
+import com.nutritionstack.nutritionstackwebapi.model.product.*;
+import com.nutritionstack.nutritionstackwebapi.model.meal.*;
+import com.nutritionstack.nutritionstackwebapi.model.tracking.*;
+import com.nutritionstack.nutritionstackwebapi.model.nutrition.*;
+import com.nutritionstack.nutritionstackwebapi.repository.product.ProductRepository;
+import com.nutritionstack.nutritionstackwebapi.repository.auth.UserRepository;
+import com.nutritionstack.nutritionstackwebapi.service.nutrition.NutritionService;
+import com.nutritionstack.nutritionstackwebapi.service.product.ProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.time.LocalDateTime;
 import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -42,7 +47,6 @@ class ProductServiceSecurityTest {
     
     @BeforeEach
     void setUp() {
-        // Create test product owned by user 1
         testProduct = new Product();
         testProduct.setEan13Code("1234567890123");
         testProduct.setProductName("Test Product");
@@ -61,7 +65,6 @@ class ProductServiceSecurityTest {
         nutritionInfo.setSalt(0.5);
         testProduct.setNutritionInfo(nutritionInfo);
         
-        // Create test users
         testUser = new User();
         testUser.setId(1L);
         testUser.setUsername("testuser");
@@ -77,7 +80,6 @@ class ProductServiceSecurityTest {
         adminUser.setUsername("adminuser");
         adminUser.setRole(UserRole.ADMIN);
         
-        // Create update request
         updateRequest = new ProductUpdateRequestDTO();
         updateRequest.setProductName("Updated Product Name");
         updateRequest.setAmount(150.0);
@@ -87,31 +89,26 @@ class ProductServiceSecurityTest {
     
     @Test
     void updateProduct_UserOwnsProduct_ShouldSucceed() {
-        // Arrange
         when(productRepository.findByEan13Code("1234567890123"))
             .thenReturn(Optional.of(testProduct));
         when(productRepository.save(any(Product.class)))
             .thenReturn(testProduct);
         
-        // Act
         assertDoesNotThrow(() -> {
             productService.updateProduct("1234567890123", updateRequest, 1L);
         });
         
-        // Assert
         verify(productRepository).findByEan13Code("1234567890123");
         verify(productRepository).save(any(Product.class));
     }
     
     @Test
     void updateProduct_UserDoesNotOwnProduct_ShouldThrowUnauthorizedAccessException() {
-        // Arrange
         when(productRepository.findByEan13Code("1234567890123"))
             .thenReturn(Optional.of(testProduct));
         when(userRepository.findById(2L))
             .thenReturn(Optional.of(otherUser));
         
-        // Act & Assert
         UnauthorizedAccessException exception = assertThrows(UnauthorizedAccessException.class, () -> {
             productService.updateProduct("1234567890123", updateRequest, 2L);
         });
@@ -127,7 +124,6 @@ class ProductServiceSecurityTest {
     
     @Test
     void updateProduct_AdminUser_ShouldSucceed() {
-        // Arrange
         when(productRepository.findByEan13Code("1234567890123"))
             .thenReturn(Optional.of(testProduct));
         when(userRepository.findById(3L))
@@ -135,12 +131,10 @@ class ProductServiceSecurityTest {
         when(productRepository.save(any(Product.class)))
             .thenReturn(testProduct);
         
-        // Act
         assertDoesNotThrow(() -> {
             productService.updateProduct("1234567890123", updateRequest, 3L);
         });
         
-        // Assert
         verify(productRepository).findByEan13Code("1234567890123");
         verify(userRepository).findById(3L);
         verify(productRepository).save(any(Product.class));
@@ -148,13 +142,11 @@ class ProductServiceSecurityTest {
     
     @Test
     void updateProduct_UserNotFound_ShouldThrowRuntimeException() {
-        // Arrange
         when(productRepository.findByEan13Code("1234567890123"))
             .thenReturn(Optional.of(testProduct));
         when(userRepository.findById(999L))
             .thenReturn(Optional.empty());
         
-        // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             productService.updateProduct("1234567890123", updateRequest, 999L);
         });
@@ -168,29 +160,24 @@ class ProductServiceSecurityTest {
     
     @Test
     void deleteProductWithOwnershipCheck_UserOwnsProduct_ShouldSucceed() {
-        // Arrange
         when(productRepository.findByEan13Code("1234567890123"))
             .thenReturn(Optional.of(testProduct));
         
-        // Act
         assertDoesNotThrow(() -> {
             productService.deleteProductWithOwnershipCheck("1234567890123", 1L);
         });
         
-        // Assert
         verify(productRepository).findByEan13Code("1234567890123");
         verify(productRepository).delete(testProduct);
     }
     
     @Test
     void deleteProductWithOwnershipCheck_UserDoesNotOwnProduct_ShouldThrowUnauthorizedAccessException() {
-        // Arrange
         when(productRepository.findByEan13Code("1234567890123"))
             .thenReturn(Optional.of(testProduct));
         when(userRepository.findById(2L))
             .thenReturn(Optional.of(otherUser));
         
-        // Act & Assert
         UnauthorizedAccessException exception = assertThrows(UnauthorizedAccessException.class, () -> {
             productService.deleteProductWithOwnershipCheck("1234567890123", 2L);
         });

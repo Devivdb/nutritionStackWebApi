@@ -1,6 +1,5 @@
 package com.nutritionstack.nutritionstackwebapi.exception;
 
-import com.nutritionstack.nutritionstackwebapi.constant.ErrorMessages;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

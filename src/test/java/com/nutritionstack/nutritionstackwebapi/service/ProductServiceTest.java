@@ -1,28 +1,28 @@
 package com.nutritionstack.nutritionstackwebapi.service;
 
-import com.nutritionstack.nutritionstackwebapi.dto.ProductCreateRequestDTO;
-import com.nutritionstack.nutritionstackwebapi.dto.ProductResponseDTO;
-import com.nutritionstack.nutritionstackwebapi.dto.ProductUpdateRequestDTO;
+import com.nutritionstack.nutritionstackwebapi.dto.product.ProductCreateRequestDTO;
+import com.nutritionstack.nutritionstackwebapi.dto.product.ProductResponseDTO;
+import com.nutritionstack.nutritionstackwebapi.dto.product.ProductUpdateRequestDTO;
 import com.nutritionstack.nutritionstackwebapi.exception.ProductAlreadyExistsException;
 import com.nutritionstack.nutritionstackwebapi.exception.ProductNotFoundException;
 import com.nutritionstack.nutritionstackwebapi.exception.ProductValidationException;
-import com.nutritionstack.nutritionstackwebapi.model.NutritionInfo;
-import com.nutritionstack.nutritionstackwebapi.model.Product;
-import com.nutritionstack.nutritionstackwebapi.model.Unit;
-import com.nutritionstack.nutritionstackwebapi.model.User;
-import com.nutritionstack.nutritionstackwebapi.repository.ProductRepository;
-import com.nutritionstack.nutritionstackwebapi.repository.UserRepository;
+import com.nutritionstack.nutritionstackwebapi.model.nutrition.NutritionInfo;
+import com.nutritionstack.nutritionstackwebapi.model.product.Product;
+import com.nutritionstack.nutritionstackwebapi.model.nutrition.Unit;
+import com.nutritionstack.nutritionstackwebapi.model.auth.User;
+import com.nutritionstack.nutritionstackwebapi.repository.product.ProductRepository;
+import com.nutritionstack.nutritionstackwebapi.repository.auth.UserRepository;
+import com.nutritionstack.nutritionstackwebapi.service.nutrition.NutritionService;
+import com.nutritionstack.nutritionstackwebapi.service.product.ProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -49,7 +49,7 @@ class ProductServiceTest {
     
     @BeforeEach
     void setUp() {
-        testUser = new User("testuser", "password", com.nutritionstack.nutritionstackwebapi.model.UserRole.USER);
+        testUser = new User("testuser", "password", com.nutritionstack.nutritionstackwebapi.model.auth.UserRole.USER);
         testUser.setId(1L);
         
         NutritionInfo nutritionInfo = new NutritionInfo();
@@ -92,12 +92,10 @@ class ProductServiceTest {
     
     @Test
     void createProduct_ShouldCreateProductSuccessfully() {
-        // Arrange
         when(productRepository.existsByEan13Code("1234567890123")).thenReturn(false);
         when(productRepository.save(any(Product.class))).thenReturn(testProduct);
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         
-        // Mock NutritionService behavior
         NutritionInfo mockNutritionInfo = new NutritionInfo();
         mockNutritionInfo.setCalories(100.0);
         mockNutritionInfo.setProtein(5.0);
@@ -108,10 +106,8 @@ class ProductServiceTest {
         mockNutritionInfo.setSalt(0.5);
         when(nutritionService.createNutritionInfoWithDefaults(createRequest)).thenReturn(mockNutritionInfo);
         
-        // Act
         ProductResponseDTO result = productService.createProduct(createRequest, 1L);
         
-        // Assert
         assertNotNull(result);
         assertEquals("1234567890123", result.getEan13Code());
         assertEquals("Test Product", result.getProductName());
@@ -125,10 +121,8 @@ class ProductServiceTest {
     
     @Test
     void createProduct_ShouldThrowException_WhenProductAlreadyExists() {
-        // Arrange
         when(productRepository.existsByEan13Code("1234567890123")).thenReturn(true);
         
-        // Act & Assert
         assertThrows(ProductAlreadyExistsException.class, () -> {
             productService.createProduct(createRequest, 1L);
         });
@@ -139,14 +133,11 @@ class ProductServiceTest {
     
     @Test
     void getProductByEan13Code_ShouldReturnProduct_WhenProductExists() {
-        // Arrange
         when(productRepository.findByEan13Code("1234567890123")).thenReturn(Optional.of(testProduct));
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         
-        // Act
         ProductResponseDTO result = productService.getProductByEan13Code("1234567890123");
         
-        // Assert
         assertNotNull(result);
         assertEquals("1234567890123", result.getEan13Code());
         assertEquals("Test Product", result.getProductName());
@@ -159,10 +150,8 @@ class ProductServiceTest {
     
     @Test
     void getProductByEan13Code_ShouldThrowException_WhenProductNotFound() {
-        // Arrange
         when(productRepository.findByEan13Code("1234567890123")).thenReturn(Optional.empty());
         
-        // Act & Assert
         assertThrows(ProductNotFoundException.class, () -> {
             productService.getProductByEan13Code("1234567890123");
         });
@@ -172,18 +161,14 @@ class ProductServiceTest {
     
     @Test
     void updateProduct_ShouldUpdateProductSuccessfully() {
-        // Arrange
         when(productRepository.findByEan13Code("1234567890123")).thenReturn(Optional.of(testProduct));
         when(productRepository.save(any(Product.class))).thenReturn(testProduct);
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         
-        // Mock NutritionService behavior
         doNothing().when(nutritionService).updateNutritionInfo(any(NutritionInfo.class), eq(updateRequest));
         
-        // Act
         ProductResponseDTO result = productService.updateProduct("1234567890123", updateRequest, 1L);
         
-        // Assert
         assertNotNull(result);
         assertEquals("Updated Product", result.getProductName());
         assertEquals(150.0, result.getAmount());
@@ -195,10 +180,8 @@ class ProductServiceTest {
     
     @Test
     void updateProduct_ShouldThrowException_WhenProductNotFound() {
-        // Arrange
         when(productRepository.findByEan13Code("1234567890123")).thenReturn(Optional.empty());
         
-        // Act & Assert
         assertThrows(ProductValidationException.class, () -> {
             productService.updateProduct("1234567890123", updateRequest, 1L);
         });
@@ -209,23 +192,18 @@ class ProductServiceTest {
     
     @Test
     void deleteProduct_ShouldDeleteProductSuccessfully() {
-        // Arrange
         when(productRepository.findByEan13Code("1234567890123")).thenReturn(Optional.of(testProduct));
         
-        // Act
         productService.deleteProduct("1234567890123");
         
-        // Assert
         verify(productRepository).findByEan13Code("1234567890123");
         verify(productRepository).delete(testProduct);
     }
     
     @Test
     void deleteProduct_ShouldThrowException_WhenProductNotFound() {
-        // Arrange
         when(productRepository.findByEan13Code("1234567890123")).thenReturn(Optional.empty());
         
-        // Act & Assert
         assertThrows(ProductNotFoundException.class, () -> {
             productService.deleteProduct("1234567890123");
         });
@@ -236,15 +214,12 @@ class ProductServiceTest {
     
     @Test
     void getAllProducts_ShouldReturnAllProducts() {
-        // Arrange
         List<Product> products = List.of(testProduct);
         when(productRepository.findAll()).thenReturn(products);
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         
-        // Act
         List<ProductResponseDTO> result = productService.getAllProducts();
         
-        // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals("1234567890123", result.get(0).getEan13Code());
@@ -254,14 +229,11 @@ class ProductServiceTest {
     
     @Test
     void convertToResponseDTO_ShouldReturnUnknownUser_WhenUserNotFound() {
-        // Arrange
         when(productRepository.findByEan13Code("1234567890123")).thenReturn(Optional.of(testProduct));
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
         
-        // Act
         ProductResponseDTO result = productService.getProductByEan13Code("1234567890123");
         
-        // Assert
         assertEquals("Unknown User", result.getCreatedByUsername());
     }
 }

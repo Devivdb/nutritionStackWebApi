@@ -1,15 +1,13 @@
 package com.nutritionstack.nutritionstackwebapi.util;
 
-import com.nutritionstack.nutritionstackwebapi.dto.AuthResponseDTO;
-import com.nutritionstack.nutritionstackwebapi.model.UserRole;
+import com.nutritionstack.nutritionstackwebapi.dto.auth.AuthResponseDTO;
+import com.nutritionstack.nutritionstackwebapi.model.auth.UserRole;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 public final class AuthResponseBuilder {
     
-    private AuthResponseBuilder() {
-        // Prevent instantiation
-    }
+    private AuthResponseBuilder() {}
     
     public static ResponseEntity<AuthResponseDTO> authError(String message, HttpStatus status) {
         return ResponseEntity.status(status)

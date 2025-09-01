@@ -1,8 +1,7 @@
 package com.nutritionstack.nutritionstackwebapi.util;
 
-import com.nutritionstack.nutritionstackwebapi.model.MealType;
-import com.nutritionstack.nutritionstackwebapi.model.Unit;
-
+import com.nutritionstack.nutritionstackwebapi.model.meal.MealType;
+import com.nutritionstack.nutritionstackwebapi.model.nutrition.Unit;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,23 +37,15 @@ public class LoggedProductValidationUtil {
     public static ValidationResult validateLoggedProductUpdate(Double quantity, Unit unit, 
                                                              MealType mealType, LocalDateTime logDate) {
         List<String> errors = new ArrayList<>();
-        
-        // Validate quantity if provided
         if (quantity != null) {
             validateQuantity(quantity, errors);
         }
-        
-        // Validate unit if provided
         if (unit != null) {
             validateUnit(unit, errors);
         }
-        
-        // Validate meal type if provided
         if (mealType != null) {
             validateMealType(mealType, errors);
         }
-        
-        // Validate log date if provided
         if (logDate != null) {
             validateLogDate(logDate, errors);
         }

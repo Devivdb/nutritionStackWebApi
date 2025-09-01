@@ -1,6 +1,5 @@
 package com.nutritionstack.nutritionstackwebapi.exception;
 
-import com.nutritionstack.nutritionstackwebapi.constant.ErrorMessages;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

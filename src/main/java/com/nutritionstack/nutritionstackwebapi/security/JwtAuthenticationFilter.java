@@ -1,11 +1,10 @@
 package com.nutritionstack.nutritionstackwebapi.security;
 
-import com.nutritionstack.nutritionstackwebapi.service.JwtService;
+import com.nutritionstack.nutritionstackwebapi.service.auth.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -15,7 +14,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -100,8 +98,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } catch (Exception e) {
             log.warn("Failed to extract authorities from token: {}", e.getMessage());
         }
-        
-        // Fallback: load authorities from UserDetailsService
         try {
             UserDetails userDetails = userDetailsService.loadUserByUsername(jwtService.extractUsername(token));
             List<SimpleGrantedAuthority> authorities = userDetails.getAuthorities().stream()
@@ -112,7 +108,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return authorities;
         } catch (Exception e) {
             log.error("Failed to load authorities from UserDetailsService: {}", e.getMessage());
-            return List.of(); // Return empty list as fallback
+            return List.of();
         }
     }
 }

@@ -1,8 +1,7 @@
 package com.nutritionstack.nutritionstackwebapi.util;
 
-import com.nutritionstack.nutritionstackwebapi.model.Unit;
+import com.nutritionstack.nutritionstackwebapi.model.nutrition.Unit;
 import com.nutritionstack.nutritionstackwebapi.exception.BulkUploadValidationException;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -37,36 +36,27 @@ public class ProductValidationUtil {
         List<String> errors = new ArrayList<>();
         String cleanedEan13 = null;
         Unit cleanedUnit = null;
-        
-        // Validate EAN13 code
+
         ValidationResult ean13Result = Ean13ValidationUtil.validateEan13Code(ean13Code);
         if (!ean13Result.isValid()) {
             errors.addAll(ean13Result.getErrors());
         } else {
             cleanedEan13 = ean13Result.getCleanedEan13();
         }
-        
-        // Validate product name
         ValidationResult nameResult = validateProductName(productName);
         if (!nameResult.isValid()) {
             errors.addAll(nameResult.getErrors());
         }
-        
-        // Validate amount
         ValidationResult amountResult = validateAmount(amount);
         if (!amountResult.isValid()) {
             errors.addAll(amountResult.getErrors());
         }
-        
-        // Validate unit
         ValidationResult unitResult = validateUnit(unit);
         if (!unitResult.isValid()) {
             errors.addAll(unitResult.getErrors());
         } else {
             cleanedUnit = unitResult.getCleanedUnit();
         }
-        
-        // Validate nutrition values
         ValidationResult nutritionResult = validateNutritionValues(calories, protein, carbs, fat, fiber, sugar, salt);
         if (!nutritionResult.isValid()) {
             errors.addAll(nutritionResult.getErrors());
@@ -144,8 +134,7 @@ public class ProductValidationUtil {
     public static ValidationResult validateNutritionValues(Double calories, Double protein, Double carbs, 
                                                          Double fat, Double fiber, Double sugar, Double salt) {
         List<String> errors = new ArrayList<>();
-        
-        // Validate calories (mandatory)
+
         if (calories == null) {
             errors.add("Calories is required");
         } else if (calories <= 0) {
@@ -153,8 +142,7 @@ public class ProductValidationUtil {
         } else if (calories > 9999.99) {
             errors.add("Calories cannot exceed 9,999.99");
         }
-        
-        // Validate other nutrition values (optional but must be non-negative if provided)
+
         validateNutritionValue(protein, "Protein", errors);
         validateNutritionValue(carbs, "Carbs", errors);
         validateNutritionValue(fat, "Fat", errors);

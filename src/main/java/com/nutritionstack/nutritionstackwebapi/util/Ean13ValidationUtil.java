@@ -23,10 +23,8 @@ public class Ean13ValidationUtil {
             errors.add("EAN13 code cannot be empty");
             return new ProductValidationUtil.ValidationResult(false, errors, null, null);
         }
-        
-        // Check if it contains only digits, spaces, hyphens, dots, and commas
+
         if (!EAN13_CLEAN_PATTERN.matcher(trimmed).matches()) {
-            // Find the first non-allowed character
             for (int i = 0; i < trimmed.length(); i++) {
                 char c = trimmed.charAt(i);
                 if (!Character.isDigit(c) && c != ' ' && c != '-' && c != '.' && c != ',') {
@@ -36,8 +34,7 @@ public class Ean13ValidationUtil {
             }
             return new ProductValidationUtil.ValidationResult(false, errors, null, null);
         }
-        
-        // Remove all non-digit characters
+
         String cleaned = trimmed.replaceAll("[^\\d]", "");
         
         if (cleaned.length() != 13) {

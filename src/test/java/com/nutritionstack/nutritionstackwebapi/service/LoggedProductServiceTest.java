@@ -1,26 +1,28 @@
 package com.nutritionstack.nutritionstackwebapi.service;
 
-import com.nutritionstack.nutritionstackwebapi.dto.LoggedProductCreateRequestDTO;
-import com.nutritionstack.nutritionstackwebapi.dto.LoggedProductResponseDTO;
-import com.nutritionstack.nutritionstackwebapi.dto.LoggedProductUpdateRequestDTO;
-import com.nutritionstack.nutritionstackwebapi.service.NutritionCalculationService;
+import com.nutritionstack.nutritionstackwebapi.dto.tracking.LoggedProductCreateRequestDTO;
+import com.nutritionstack.nutritionstackwebapi.dto.tracking.LoggedProductResponseDTO;
+import com.nutritionstack.nutritionstackwebapi.dto.tracking.LoggedProductUpdateRequestDTO;
+import com.nutritionstack.nutritionstackwebapi.service.nutrition.NutritionCalculationService;
 import com.nutritionstack.nutritionstackwebapi.exception.LoggedProductNotFoundException;
 import com.nutritionstack.nutritionstackwebapi.exception.ProductNotFoundException;
-import com.nutritionstack.nutritionstackwebapi.model.*;
-import com.nutritionstack.nutritionstackwebapi.repository.LoggedProductRepository;
-import com.nutritionstack.nutritionstackwebapi.repository.ProductRepository;
+import com.nutritionstack.nutritionstackwebapi.model.product.*;
+import com.nutritionstack.nutritionstackwebapi.model.meal.*;
+import com.nutritionstack.nutritionstackwebapi.model.tracking.*;
+import com.nutritionstack.nutritionstackwebapi.model.nutrition.*;
+import com.nutritionstack.nutritionstackwebapi.repository.tracking.LoggedProductRepository;
+import com.nutritionstack.nutritionstackwebapi.repository.product.ProductRepository;
+import com.nutritionstack.nutritionstackwebapi.service.tracking.LoggedProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -47,7 +49,6 @@ class LoggedProductServiceTest {
     
     @BeforeEach
     void setUp() {
-        // Create test product
         testProduct = new Product();
         testProduct.setEan13Code("1234567890123");
         testProduct.setProductName("Test Product");
@@ -64,7 +65,6 @@ class LoggedProductServiceTest {
         nutritionInfo.setSalt(0.5);
         testProduct.setNutritionInfo(nutritionInfo);
         
-        // Create test logged product
         testLoggedProduct = new LoggedProduct();
         testLoggedProduct.setId(1L);
         testLoggedProduct.setUserId(1L);
@@ -75,7 +75,6 @@ class LoggedProductServiceTest {
         testLoggedProduct.setLogDate(LocalDateTime.now());
         testLoggedProduct.setCreatedAt(LocalDateTime.now());
         
-        // Create test DTOs
         createRequest = new LoggedProductCreateRequestDTO();
         createRequest.setEan13Code("1234567890123");
         createRequest.setQuantity(100.0);
@@ -89,7 +88,6 @@ class LoggedProductServiceTest {
     
     @Test
     void logProduct_ValidRequest_ReturnsLoggedProductResponse() {
-        // Arrange
         when(productRepository.findByEan13Code("1234567890123"))
             .thenReturn(Optional.of(testProduct));
         when(loggedProductRepository.save(any(LoggedProduct.class)))
@@ -109,11 +107,9 @@ class LoggedProductServiceTest {
         when(nutritionCalculationService.calculateNutrition(
             any(), any(), any(), any(), any()))
             .thenReturn(mockNutrition);
-        
-        // Act
+
         LoggedProductResponseDTO result = loggedProductService.logProduct(createRequest, 1L);
         
-        // Assert
         assertNotNull(result);
         assertEquals("1234567890123", result.getEan13Code());
         assertEquals(100.0, result.getQuantity());
@@ -129,11 +125,9 @@ class LoggedProductServiceTest {
     
     @Test
     void logProduct_ProductNotFound_ThrowsException() {
-        // Arrange
         when(productRepository.findByEan13Code("1234567890123"))
             .thenReturn(Optional.empty());
         
-        // Act & Assert
         assertThrows(ProductNotFoundException.class, () -> {
             loggedProductService.logProduct(createRequest, 1L);
         });
@@ -144,7 +138,6 @@ class LoggedProductServiceTest {
     
     @Test
     void getUserLoggedProducts_ValidUserId_ReturnsList() {
-        // Arrange
         List<LoggedProduct> loggedProducts = Arrays.asList(testLoggedProduct);
         when(loggedProductRepository.findByUserIdOrderByLogDateDesc(1L))
             .thenReturn(loggedProducts);
@@ -166,10 +159,8 @@ class LoggedProductServiceTest {
             any(), any(), any(), any(), any()))
             .thenReturn(mockNutrition);
         
-        // Act
         List<LoggedProductResponseDTO> result = loggedProductService.getUserLoggedProducts(1L);
         
-        // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals("1234567890123", result.get(0).getEan13Code());
@@ -180,7 +171,6 @@ class LoggedProductServiceTest {
     
     @Test
     void getLoggedProduct_ValidId_ReturnsLoggedProduct() {
-        // Arrange
         when(loggedProductRepository.findByIdAndUserId(1L, 1L))
             .thenReturn(Optional.of(testLoggedProduct));
         when(productRepository.findByEan13Code("1234567890123"))
@@ -201,10 +191,8 @@ class LoggedProductServiceTest {
             any(), any(), any(), any(), any()))
             .thenReturn(mockNutrition);
         
-        // Act
         LoggedProductResponseDTO result = loggedProductService.getLoggedProduct(1L, 1L);
         
-        // Assert
         assertNotNull(result);
         assertEquals(1L, result.getId());
         assertEquals("1234567890123", result.getEan13Code());
@@ -215,11 +203,9 @@ class LoggedProductServiceTest {
     
     @Test
     void getLoggedProduct_NotFound_ThrowsException() {
-        // Arrange
         when(loggedProductRepository.findByIdAndUserId(1L, 1L))
             .thenReturn(Optional.empty());
         
-        // Act & Assert
         assertThrows(LoggedProductNotFoundException.class, () -> {
             loggedProductService.getLoggedProduct(1L, 1L);
         });
@@ -229,11 +215,9 @@ class LoggedProductServiceTest {
     
     @Test
     void updateLoggedProduct_ValidRequest_ReturnsUpdatedProduct() {
-        // Arrange
         when(loggedProductRepository.findByIdAndUserId(1L, 1L))
             .thenReturn(Optional.of(testLoggedProduct));
         
-        // Create updated logged product
         LoggedProduct updatedLoggedProduct = new LoggedProduct();
         updatedLoggedProduct.setId(1L);
         updatedLoggedProduct.setUserId(1L);
@@ -264,10 +248,8 @@ class LoggedProductServiceTest {
             any(), any(), any(), any(), any()))
             .thenReturn(mockNutrition);
         
-        // Act
         LoggedProductResponseDTO result = loggedProductService.updateLoggedProduct(1L, updateRequest, 1L);
         
-        // Assert
         assertNotNull(result);
         assertEquals(150.0, result.getQuantity()); // Updated value
         
@@ -278,25 +260,20 @@ class LoggedProductServiceTest {
     
     @Test
     void deleteLoggedProduct_ValidId_DeletesSuccessfully() {
-        // Arrange
         when(loggedProductRepository.existsByIdAndUserId(1L, 1L))
             .thenReturn(true);
         
-        // Act
         loggedProductService.deleteLoggedProduct(1L, 1L);
         
-        // Assert
         verify(loggedProductRepository).existsByIdAndUserId(1L, 1L);
         verify(loggedProductRepository).deleteById(1L);
     }
     
     @Test
     void deleteLoggedProduct_NotFound_ThrowsException() {
-        // Arrange
         when(loggedProductRepository.existsByIdAndUserId(1L, 1L))
             .thenReturn(false);
         
-        // Act & Assert
         assertThrows(LoggedProductNotFoundException.class, () -> {
             loggedProductService.deleteLoggedProduct(1L, 1L);
         });
