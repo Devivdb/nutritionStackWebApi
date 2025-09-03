@@ -2,9 +2,9 @@
 
 -- Users
 INSERT INTO users (id, username, password, role, created_at) VALUES
-(1, 'testuser', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDi', 'USER', CURRENT_TIMESTAMP),
-(2, 'admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDi', 'ADMIN', CURRENT_TIMESTAMP),
-(3, 'nutritionist', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDi', 'USER', CURRENT_TIMESTAMP);
+(1, 'testuser', '$2a$10$peC4bjSv/o0EbUElGPusz.g.5NaJpUu/s/aqnRNJav9YZ05nFMOKW', 'USER', CURRENT_TIMESTAMP),
+(2, 'admin', '$2a$10$peC4bjSv/o0EbUElGPusz.g.5NaJpUu/s/aqnRNJav9YZ05nFMOKW', 'ADMIN', CURRENT_TIMESTAMP),
+(3, 'nutritionist', '$2a$10$peC4bjSv/o0EbUElGPusz.g.5NaJpUu/s/aqnRNJav9YZ05nFMOKW', 'USER', CURRENT_TIMESTAMP);
 
 -- Products
 INSERT INTO products (ean13_code, product_name, amount, unit, calories, protein, carbs, fat, fiber, sugar, salt, created_by, created_at) VALUES

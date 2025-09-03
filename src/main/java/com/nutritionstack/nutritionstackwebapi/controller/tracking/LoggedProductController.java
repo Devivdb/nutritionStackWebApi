@@ -73,9 +73,7 @@ public class LoggedProductController {
             Long userId = getUserIdFromAuthentication(authentication);
             LoggedProductSimpleResponseDTO response = loggedProductService.getLoggedProductSimple(logId, userId);
             return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            throw e;
-        } catch (LoggedProductNotFoundException e) {
+        } catch (IllegalArgumentException | LoggedProductNotFoundException e) {
             throw e;
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to retrieve logged product: " + e.getMessage());
@@ -92,9 +90,7 @@ public class LoggedProductController {
             Long userId = getUserIdFromAuthentication(authentication);
             LoggedProductSimpleResponseDTO response = loggedProductService.updateLoggedProductSimple(logId, request, userId);
             return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            throw e;
-        } catch (LoggedProductNotFoundException e) {
+        } catch (IllegalArgumentException | LoggedProductNotFoundException e) {
             throw e;
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to update logged product: " + e.getMessage());
@@ -110,9 +106,7 @@ public class LoggedProductController {
             Long userId = getUserIdFromAuthentication(authentication);
             loggedProductService.deleteLoggedProduct(logId, userId);
             return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException e) {
-            throw e;
-        } catch (LoggedProductNotFoundException e) {
+        } catch (IllegalArgumentException | LoggedProductNotFoundException e) {
             throw e;
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to delete logged product: " + e.getMessage());

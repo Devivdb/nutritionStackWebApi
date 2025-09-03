@@ -3,7 +3,6 @@ package com.nutritionstack.nutritionstackwebapi.service;
 import com.nutritionstack.nutritionstackwebapi.dto.product.ProductUpdateRequestDTO;
 import com.nutritionstack.nutritionstackwebapi.exception.UnauthorizedAccessException;
 import com.nutritionstack.nutritionstackwebapi.model.auth.*;
-import com.nutritionstack.nutritionstackwebapi.model.auth.*;
 import com.nutritionstack.nutritionstackwebapi.model.product.*;
 import com.nutritionstack.nutritionstackwebapi.model.meal.*;
 import com.nutritionstack.nutritionstackwebapi.model.tracking.*;

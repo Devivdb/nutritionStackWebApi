@@ -5,3 +5,4 @@ public class AdminCannotDeleteLastAdminException extends RuntimeException {
         super(message);
     }
 }
+
