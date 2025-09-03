@@ -67,9 +67,15 @@ INSERT INTO bulk_uploads (id, file_name, product_count, status, uploaded_by, upl
 (1, 'initial_products.json', 15, 'COMPLETED', 2, CURRENT_TIMESTAMP - INTERVAL '1 hour'),
 (2, 'supplemental_products.json', 0, 'FAILED', 2, CURRENT_TIMESTAMP - INTERVAL '30 minutes');
 
+-- User Goals
+INSERT INTO user_goals (id, user_id, calories_goal, protein_goal, carbs_goal, fat_goal, is_active, created_at, updated_at) VALUES
+(1, 1, 2000.0, 150.0, 200.0, 67.0, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+(2, 3, 1800.0, 120.0, 180.0, 60.0, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
 -- Reset sequences
 SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
 SELECT setval('meals_id_seq', (SELECT MAX(id) FROM meals));
 SELECT setval('meal_products_id_seq', (SELECT MAX(id) FROM meal_products));
 SELECT setval('logged_products_id_seq', (SELECT MAX(id) FROM logged_products));
 SELECT setval('bulk_uploads_id_seq', (SELECT MAX(id) FROM bulk_uploads));
+SELECT setval('user_goals_id_seq', (SELECT MAX(id) FROM user_goals));
