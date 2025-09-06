@@ -6,7 +6,7 @@ import com.nutritionstack.nutritionstackwebapi.dto.nutrition.UserGoalResponseDTO
 import com.nutritionstack.nutritionstackwebapi.exception.UserGoalNotFoundException;
 import com.nutritionstack.nutritionstackwebapi.model.nutrition.UserGoal;
 import com.nutritionstack.nutritionstackwebapi.repository.nutrition.UserGoalRepository;
-import com.nutritionstack.nutritionstackwebapi.util.UserGoalValidationUtil;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,6 +79,11 @@ public class UserGoalService {
     
     public boolean hasActiveGoal(Long userId) {
         return userGoalRepository.existsByUserIdAndIsActiveTrue(userId);
+    }
+    
+    public UserGoal getActiveGoalEntity(Long userId) {
+        return userGoalRepository.findByUserIdAndIsActiveTrue(userId)
+                .orElseThrow(() -> new UserGoalNotFoundException("No active goal found for user"));
     }
     
     @Transactional
