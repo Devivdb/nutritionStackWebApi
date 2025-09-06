@@ -1349,6 +1349,240 @@
 					]
 				}
 			]
+		},
+		{
+			"name": "Nutrition Reports",
+			"item": [
+				{
+					"name": "Generate Report",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"reportType\": \"DAY\",\n    \"date\": \"2024-01-15\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/nutrition-reports",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"nutrition-reports"
+							]
+						},
+						"description": "Generate a nutrition report for the authenticated user\n\nReport Types:\n- DAY: Single day report (use 'date' field with yyyy-MM-dd format)\n- WEEK: Weekly report (use startDate and endDate with yyyy-MM-ddTHH:mm:ss format)\n- MONTHLY: Monthly report (use 'date' field with any date in the month, yyyy-MM-dd format)\n- CUSTOM: Custom date range (use startDate and endDate with yyyy-MM-ddTHH:mm:ss format)\n\nExamples:\n- DAY: {\"reportType\": \"DAY\", \"date\": \"2024-01-15\"}\n- WEEK: {\"reportType\": \"WEEK\", \"startDate\": \"2024-01-15T00:00:00\", \"endDate\": \"2024-01-21T23:59:59\"}\n- MONTHLY: {\"reportType\": \"MONTHLY\", \"date\": \"2024-01-15\"} (covers entire January 2024)\n- CUSTOM: {\"reportType\": \"CUSTOM\", \"startDate\": \"2024-01-01T00:00:00\", \"endDate\": \"2024-01-14T23:59:59\"}\n\nResponse includes:\n- Report ID for future reference\n- Download URL for the generated PDF\n- File size and generation timestamp"
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Monthly Report",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"reportType\": \"MONTHLY\",\n    \"date\": \"2024-01-15\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/nutrition-reports",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"nutrition-reports"
+							]
+						},
+						"description": "Generate a monthly nutrition report for the authenticated user\n\nMonthly Report:\n- Covers the entire month containing the specified date\n- Use any date within the target month (e.g., 2024-01-15 covers all of January 2024)\n- Automatically calculates start (1st of month) and end (last day of month) dates\n- Perfect for monthly nutrition summaries and tracking\n\nExample: {\"reportType\": \"MONTHLY\", \"date\": \"2024-01-15\"}\n\nResponse includes:\n- Report ID for future reference\n- Download URL for the generated PDF\n- File size and generation timestamp"
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Weekly Report",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"reportType\": \"WEEK\",\n    \"startDate\": \"2024-01-15T00:00:00\",\n    \"endDate\": \"2024-01-21T23:59:59\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/nutrition-reports",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"nutrition-reports"
+							]
+						},
+						"description": "Generate a weekly nutrition report for the authenticated user\n\nWeekly Report:\n- Covers 1-7 days as specified by startDate and endDate\n- Validates that the range is between 1-7 days\n- Perfect for weekly nutrition tracking and analysis\n\nExample: {\"reportType\": \"WEEK\", \"startDate\": \"2024-01-15T00:00:00\", \"endDate\": \"2024-01-21T23:59:59\"}\n\nResponse includes:\n- Report ID for future reference\n- Download URL for the generated PDF\n- File size and generation timestamp"
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Custom Report",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"reportType\": \"CUSTOM\",\n    \"startDate\": \"2024-01-01T00:00:00\",\n    \"endDate\": \"2024-01-14T23:59:59\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/nutrition-reports",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"nutrition-reports"
+							]
+						},
+						"description": "Generate a custom date range nutrition report for the authenticated user\n\nCustom Report:\n- Covers any date range up to 365 days\n- Use startDate and endDate to specify exact range\n- Perfect for specific tracking periods (e.g., 2 weeks, 3 months, etc.)\n- Maximum range: 365 days\n\nExample: {\"reportType\": \"CUSTOM\", \"startDate\": \"2024-01-01T00:00:00\", \"endDate\": \"2024-01-14T23:59:59\"}\n\nResponse includes:\n- Report ID for future reference\n- Download URL for the generated PDF\n- File size and generation timestamp"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Reports",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/nutrition-reports",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"nutrition-reports"
+							]
+						},
+						"description": "Get all nutrition reports for the authenticated user\n\nReturns a list of report summaries including:\n- Report ID and name\n- Report type and date range\n- File size and generation timestamp\n- Ordered by generation date (newest first)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Report by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/nutrition-reports/{{reportId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"nutrition-reports",
+								"{{reportId}}"
+							]
+						},
+						"description": "Get a specific nutrition report by ID\n\nPath Variables:\n- reportId: The ID of the report to retrieve\n\nReturns report summary details including metadata and download information"
+					},
+					"response": []
+				},
+				{
+					"name": "Download Report",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/nutrition-reports/{{reportId}}/download",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"nutrition-reports",
+								"{{reportId}}",
+								"download"
+							]
+						},
+						"description": "Download the PDF report file\n\nPath Variables:\n- reportId: The ID of the report to download\n\nReturns the actual PDF file as a binary download\n\nNote: This will trigger a file download in your browser/Postman"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Report",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/nutrition-reports/{{reportId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"nutrition-reports",
+								"{{reportId}}"
+							]
+						},
+						"description": "Delete a nutrition report\n\nPath Variables:\n- reportId: The ID of the report to delete\n\nThis will permanently delete both the database record and the PDF file\n\nReturns 200 OK with success message"
+					},
+					"response": []
+				}
+			],
+			"description": "Nutrition report generation and management endpoints\n\n📊 **Report Features**:\n- Generate comprehensive nutrition reports with progress tracking\n- Compare actual nutrition intake against user goals\n- Breakdown by meal types (breakfast, lunch, dinner, snack)\n- Download reports as PDF files\n- Track report history and manage storage\n\n📅 **Report Types**:\n- **DAY**: Single day analysis\n- **WEEK**: Weekly summary (1-7 days)\n- **CUSTOM**: Flexible date range (up to 365 days)\n\n📈 **Report Content**:\n- User information and report metadata\n- Progress bars showing goal achievement\n- Total nutrition summary\n- Nutrition breakdown by meal type\n- Detailed product log with timestamps\n\n💾 **File Management**:\n- Reports are stored as files on the server\n- Each report has a unique ID for reference\n- Download URLs are provided for easy access\n- Reports can be deleted to free up storage space"
 		}
 	],
 	"event": [
@@ -1386,6 +1620,56 @@
 			"key": "userId",
 			"value": "1",
 			"type": "string"
+		},
+		{
+			"key": "ean13Code",
+			"value": "1234567890123",
+			"type": "string"
+		},
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"description": "Base URL for the API"
+		},
+		{
+			"key": "authToken",
+			"value": "",
+			"description": "JWT authentication token (automatically set after login)"
+		},
+		{
+			"key": "mealId",
+			"value": "1",
+			"description": "ID of the meal to work with"
+		},
+		{
+			"key": "productEan",
+			"value": "1234567890123",
+			"description": "EAN13 code of the product to work with"
+		},
+		{
+			"key": "goalId",
+			"value": "1",
+			"description": "ID of the goal to work with"
+		},
+		{
+			"key": "reportId",
+			"value": "1",
+			"description": "ID of the report to work with"
+		},
+		{
+			"key": "userId",
+			"value": "1",
+			"description": "ID of the user to work with (admin only)"
+		},
+		{
+			"key": "bulkUploadId",
+			"value": "1",
+			"description": "ID of the bulk upload to work with"
+		},
+		{
+			"key": "logId",
+			"value": "1",
+			"description": "ID of the logged product to work with"
 		},
 		{
 			"key": "ean13Code",
