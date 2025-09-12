@@ -139,7 +139,7 @@
 					"response": []
 				}
 			],
-			"description": "User authentication endpoints"
+			"description": "Purpose: User registration and login.\n\nHighlights:\n- Register new users\n- Login to receive a JWT token (auto-saved in collection)\n\nSecurity:\n- Public endpoints (no authorization header required)"
 		},
 		{
 			"name": "User Profile",
@@ -294,7 +294,7 @@
 					"response": []
 				}
 			],
-			"description": "User profile management endpoints"
+			"description": "Purpose: Manage the authenticated user's profile.\n\nHighlights:\n- Retrieve current profile\n- Update username and/or password\n- Delete own account\n\nSecurity:\n- Authentication required for all endpoints"
 		},
 		{
 			"name": "User Goals",
@@ -490,7 +490,7 @@
 					"response": []
 				}
 			],
-			"description": "User nutrition goal management endpoints"
+			"description": "Purpose: Manage personal nutrition goals.\n\nHighlights:\n- Create and update goals (calories/macros)\n- View active and historical goals\n- Reactivate previous goals\n\nSecurity:\n- Authentication required for all endpoints"
 		},
 		{
 			"name": "Products",
@@ -635,7 +635,7 @@
 					"response": []
 				}
 			],
-			"description": "Product management endpoints"
+			"description": "Purpose: Manage products identified by EAN13.\n\nHighlights:\n- Create, read, update products\n- Delete products (admin only)\n- Search by EAN13\n\nSecurity:\n- Authentication required\n- Update restricted to creator or admin\n- Delete restricted to admin"
 		},
 		{
 			"name": "Logged Products",
@@ -844,7 +844,7 @@
 					"response": []
 				}
 			],
-			"description": "Product consumption tracking endpoints for users to log their daily food intake and view calculated nutrition values\n\n💡 IMPORTANT: When logging new products, you do NOT need to provide a logDate - the system automatically sets it to the current time!"
+			"description": "Purpose: Track consumed products per meal and date.\n\nHighlights:\n- Log consumption by product EAN, quantity, unit, and meal type\n- View all logs, by ID, by date, or by meal type\n- Update or delete logged products\n\nSecurity:\n- Authentication required for all endpoints\n- Users can access only their own logs\n\nNote:\n- logDate is optional; defaults to current time if omitted"
 		},
 		{
 			"name": "Admin Management",
@@ -962,7 +962,7 @@
 					"response": []
 				}
 			],
-			"description": "Admin user management endpoints (Admin role required)"
+			"description": "Purpose: Administrative management of users.\n\nHighlights:\n- List users and view details\n- Update user roles\n- Delete users (with safeguards)\n\nSecurity:\n- Admin authorization required for all endpoints"
 		},
 		{
 			"name": "Bulk Upload Management",
@@ -1108,7 +1108,7 @@
 					"response": []
 				}
 			],
-			"description": "Bulk upload management endpoints for admins to upload and manage multiple products at once"
+			"description": "Purpose: Upload and manage products in bulk (JSON file).\n\nHighlights:\n- Upload JSON with many products\n- View all uploads and your uploads\n- Inspect specific upload\n- Delete products by bulk upload ID\n\nSecurity:\n- Admin authorization required for all endpoints"
 		},
 		{
 			"name": "Meals",
@@ -1348,7 +1348,8 @@
 						}
 					]
 				}
-			]
+			],
+			"description": "Meal management endpoints for creating meals from products, adjusting quantities, removing items, deleting meals, and logging meals to consumption history.\n\nHighlights:\n- Create meals with products and quantities\n- Update or remove meal items\n- Delete meals (only creator or admin)\n- Log a meal to create logged products with calculated nutrition\n\nSecurity:\n- Authentication required for all endpoints\n- Only the meal creator or an admin can modify or delete a meal"
 		},
 		{
 			"name": "Nutrition Reports",
@@ -1381,7 +1382,7 @@
 								"nutrition-reports"
 							]
 						},
-						"description": "Generate a nutrition report for the authenticated user\n\nReport Types:\n- DAY: Single day report (use 'date' field with yyyy-MM-dd format)\n- WEEK: Weekly report (use startDate and endDate with yyyy-MM-ddTHH:mm:ss format)\n- MONTHLY: Monthly report (use 'date' field with any date in the month, yyyy-MM-dd format)\n- CUSTOM: Custom date range (use startDate and endDate with yyyy-MM-ddTHH:mm:ss format)\n\nExamples:\n- DAY: {\"reportType\": \"DAY\", \"date\": \"2024-01-15\"}\n- WEEK: {\"reportType\": \"WEEK\", \"startDate\": \"2024-01-15T00:00:00\", \"endDate\": \"2024-01-21T23:59:59\"}\n- MONTHLY: {\"reportType\": \"MONTHLY\", \"date\": \"2024-01-15\"} (covers entire January 2024)\n- CUSTOM: {\"reportType\": \"CUSTOM\", \"startDate\": \"2024-01-01T00:00:00\", \"endDate\": \"2024-01-14T23:59:59\"}\n\nResponse includes:\n- Report ID for future reference\n- Download URL for the generated PDF\n- File size and generation timestamp"
+						"description": "Generate a nutrition report for the authenticated user\n\nReport Types:\n- DAY: Single day report (use 'date' field with yyyy-MM-dd format)\n- WEEK: Weekly report (use startDate and endDate with yyyy-MM-ddTHH:mm:ss format)\n- MONTHLY: Monthly report (use 'date' field with any date in the month, yyyy-MM-dd format)\n- CUSTOM: Custom date range (use startDate and endDate with yyyy-MM-ddTHH:mm:ss format)\n\nExamples:\n- DAY: {\"reportType\": \"DAY\", \"date\": \"2024-01-15\"}\n- WEEK: {\"reportType\": \"WEEK\", \"startDate\": \"2024-01-15T00:00:00\", \"endDate\": \"2024-01-21T23:59:59\"}\n- MONTHLY: {\"reportType\": \"MONTHLY\", \"date\": \"2024-01-15\"} (covers entire January 2024)\n- CUSTOM: {\"reportType\": \"CUSTOM\", \"startDate\": \"2024-01-01T00:00:00\", \"endDate\": \"2024-01-14T23:59:59\"}\n\nResponse:\n- Returns a PDF file directly with 201 Created and Content-Disposition attachment\n- No JSON payload is returned"
 					},
 					"response": []
 				},
@@ -1413,7 +1414,7 @@
 								"nutrition-reports"
 							]
 						},
-						"description": "Generate a monthly nutrition report for the authenticated user\n\nMonthly Report:\n- Covers the entire month containing the specified date\n- Use any date within the target month (e.g., 2024-01-15 covers all of January 2024)\n- Automatically calculates start (1st of month) and end (last day of month) dates\n- Perfect for monthly nutrition summaries and tracking\n\nExample: {\"reportType\": \"MONTHLY\", \"date\": \"2024-01-15\"}\n\nResponse includes:\n- Report ID for future reference\n- Download URL for the generated PDF\n- File size and generation timestamp"
+						"description": "Generate a monthly nutrition report for the authenticated user\n\nMonthly Report:\n- Covers the entire month containing the specified date\n- Use any date within the target month (e.g., 2024-01-15 covers all of January 2024)\n- Automatically calculates start (1st of month) and end (last day of month) dates\n- Perfect for monthly nutrition summaries and tracking\n\nExample: {\"reportType\": \"MONTHLY\", \"date\": \"2024-01-15\"}\n\nResponse:\n- Returns a PDF file directly with 201 Created and Content-Disposition attachment\n- No JSON payload is returned"
 					},
 					"response": []
 				},
@@ -1445,7 +1446,7 @@
 								"nutrition-reports"
 							]
 						},
-						"description": "Generate a weekly nutrition report for the authenticated user\n\nWeekly Report:\n- Covers 1-7 days as specified by startDate and endDate\n- Validates that the range is between 1-7 days\n- Perfect for weekly nutrition tracking and analysis\n\nExample: {\"reportType\": \"WEEK\", \"startDate\": \"2024-01-15T00:00:00\", \"endDate\": \"2024-01-21T23:59:59\"}\n\nResponse includes:\n- Report ID for future reference\n- Download URL for the generated PDF\n- File size and generation timestamp"
+						"description": "Generate a weekly nutrition report for the authenticated user\n\nWeekly Report:\n- Covers 1-7 days as specified by startDate and endDate\n- Validates that the range is between 1-7 days\n- Perfect for weekly nutrition tracking and analysis\n\nExample: {\"reportType\": \"WEEK\", \"startDate\": \"2024-01-15T00:00:00\", \"endDate\": \"2024-01-21T23:59:59\"}\n\nResponse:\n- Returns a PDF file directly with 201 Created and Content-Disposition attachment\n- No JSON payload is returned"
 					},
 					"response": []
 				},
@@ -1477,7 +1478,7 @@
 								"nutrition-reports"
 							]
 						},
-						"description": "Generate a custom date range nutrition report for the authenticated user\n\nCustom Report:\n- Covers any date range up to 365 days\n- Use startDate and endDate to specify exact range\n- Perfect for specific tracking periods (e.g., 2 weeks, 3 months, etc.)\n- Maximum range: 365 days\n\nExample: {\"reportType\": \"CUSTOM\", \"startDate\": \"2024-01-01T00:00:00\", \"endDate\": \"2024-01-14T23:59:59\"}\n\nResponse includes:\n- Report ID for future reference\n- Download URL for the generated PDF\n- File size and generation timestamp"
+						"description": "Generate a custom date range nutrition report for the authenticated user\n\nCustom Report:\n- Covers any date range up to 365 days\n- Use startDate and endDate to specify exact range\n- Perfect for specific tracking periods (e.g., 2 weeks, 3 months, etc.)\n- Maximum range: 365 days\n\nExample: {\"reportType\": \"CUSTOM\", \"startDate\": \"2024-01-01T00:00:00\", \"endDate\": \"2024-01-14T23:59:59\"}\n\nResponse:\n- Returns a PDF file directly with 201 Created and Content-Disposition attachment\n- No JSON payload is returned"
 					},
 					"response": []
 				},
@@ -1582,7 +1583,7 @@
 					"response": []
 				}
 			],
-			"description": "Nutrition report generation and management endpoints\n\n📊 **Report Features**:\n- Generate comprehensive nutrition reports with progress tracking\n- Compare actual nutrition intake against user goals\n- Breakdown by meal types (breakfast, lunch, dinner, snack)\n- Download reports as PDF files\n- Track report history and manage storage\n\n📅 **Report Types**:\n- **DAY**: Single day analysis\n- **WEEK**: Weekly summary (1-7 days)\n- **CUSTOM**: Flexible date range (up to 365 days)\n\n📈 **Report Content**:\n- User information and report metadata\n- Progress bars showing goal achievement\n- Total nutrition summary\n- Nutrition breakdown by meal type\n- Detailed product log with timestamps\n\n💾 **File Management**:\n- Reports are stored as files on the server\n- Each report has a unique ID for reference\n- Download URLs are provided for easy access\n- Reports can be deleted to free up storage space"
+			"description": "Purpose: Generate and manage nutrition reports (PDF).\n\nHighlights:\n- Generate PDF reports for day, week, month, or custom range\n- View and download previous reports\n- Delete reports to free storage\n\nSecurity:\n- Authentication required for all endpoints\n\nReport Types:\n- DAY (date)\n- WEEK (startDate, endDate)\n- MONTHLY (date)\n- CUSTOM (startDate, endDate)"
 		}
 	],
 	"event": [
